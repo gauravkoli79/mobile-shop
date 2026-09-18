@@ -381,7 +381,9 @@ const translations = {
         catAudioTitle: "Audio & Wireless Earbuds",
         catChargersTitle: "Fast Chargers & Power Banks",
         catAccessoriesTitle: "Covers & Tempered Glass",
-        allCategoriesBtn: "All Categories ▾"
+        allCategoriesBtn: "All Categories ▾",
+        posHistoryTitle: "Recent Invoices & POS Bill History",
+        posHistorySubtitle: "Re-print past bills, download PDF, or send to customer on WhatsApp"
     },
 
     hi: {
@@ -762,6 +764,8 @@ const translations = {
         catAudioTitle: "ईयरबड्स और ऑडियो",
         catChargersTitle: "फास्ट चार्जर्स और पावर बैंक",
         catAccessoriesTitle: "कवर्स और टेम्पर्ड ग्लास",
-        allCategoriesBtn: "सभी कैटेगरी ▾"
+        allCategoriesBtn: "सभी कैटेगरी ▾",
+        posHistoryTitle: "हाल ही में बनाए गए बिलों का इतिहास (POS Bill History)",
+        posHistorySubtitle: "पुराने बिल पुनः प्रिंट करें, PDF डाउनलोड करें या ग्राहक को WhatsApp पर भेजें"
     }
 };

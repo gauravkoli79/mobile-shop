@@ -59,6 +59,7 @@ function setLanguage(lang) {
     renderCustomersTable(customers);
     renderRepairsTable(repairs);
     renderPosCart();
+    if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
 
     // 6. Update chart label
     updateChartLanguage();
@@ -409,6 +410,9 @@ function switchView(linkId) {
     if (linkId === "settings-link") {
         loadSmsStatus();
         loadAdminUpiConfig();
+    }
+    if (linkId === "pos-link" || linkId === "dashboard-link") {
+        if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
     }
 
     Object.values(viewMapping).forEach(viewId => {
@@ -1178,6 +1182,7 @@ function initPosBilling() {
 
     if (discountInput) discountInput.addEventListener("input", updatePosTotals);
     if (exchangeInput) exchangeInput.addEventListener("input", updatePosTotals);
+    if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
 }
 
 let currentActivePosInvoice = null;
@@ -1531,70 +1536,12 @@ function generateAndPrintBill() {
     try {
         const history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
         history.unshift(currentActivePosInvoice);
-        localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history.slice(0, 50)));
+        localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history.slice(0, 100)));
     } catch (e) {}
 
-    // Populate Modal 7 Elements
-    const invModalNumber = document.getElementById("invModalNumber");
-    const invModalDateTime = document.getElementById("invModalDateTime");
-    const invModalCustName = document.getElementById("invModalCustName");
-    const invModalCustPhone = document.getElementById("invModalCustPhone");
-    const invModalPayMode = document.getElementById("invModalPayMode");
-    const invModalItemsRows = document.getElementById("invModalItemsRows");
-    const invModalTaxable = document.getElementById("invModalTaxable");
-    const invModalCgst = document.getElementById("invModalCgst");
-    const invModalSgst = document.getElementById("invModalSgst");
-    const invModalDiscountRow = document.getElementById("invModalDiscountRow");
-    const invModalDiscount = document.getElementById("invModalDiscount");
-    const invModalGrandTotal = document.getElementById("invModalGrandTotal");
-
-    if (invModalNumber) invModalNumber.textContent = invNumber;
-    if (invModalDateTime) invModalDateTime.textContent = dateFormatted;
-    if (invModalCustName) invModalCustName.textContent = custName;
-    if (invModalCustPhone) invModalCustPhone.textContent = custPhone;
-    if (invModalPayMode) {
-        invModalPayMode.textContent = mode;
-        invModalPayMode.className = (mode === 'CASH' || mode === 'UPI') 
-            ? "badge bg-success-subtle text-success border border-success-subtle fw-bold" 
-            : "badge bg-primary-subtle text-primary border border-primary-subtle fw-bold";
-    }
-
-    if (invModalItemsRows) {
-        invModalItemsRows.innerHTML = posCart.map((item, idx) => {
-            const itemTaxable = item.price / 1.18;
-            const itemGst = item.price - itemTaxable;
-            return `
-                <tr>
-                    <td class="text-center">${idx + 1}</td>
-                    <td>
-                        <div class="fw-bold text-dark">${item.name}</div>
-                        <small class="text-muted">IMEI/SN: <code class="bg-light px-1 border rounded text-dark">${item.imei1 || 'N/A'}</code></small>
-                    </td>
-                    <td class="text-center">${item.quantity || 1}</td>
-                    <td class="text-end">₹${item.price.toLocaleString('en-IN')}</td>
-                    <td class="text-end">₹${itemTaxable.toFixed(2)}</td>
-                    <td class="text-end">₹${itemGst.toFixed(2)}</td>
-                    <td class="text-end fw-bold text-dark">₹${item.price.toLocaleString('en-IN')}</td>
-                </tr>
-            `;
-        }).join("");
-    }
-
-    if (invModalTaxable) invModalTaxable.textContent = `₹${taxableTotal.toFixed(2)}`;
-    if (invModalCgst) invModalCgst.textContent = `₹${cgst.toFixed(2)}`;
-    if (invModalSgst) invModalSgst.textContent = `₹${sgst.toFixed(2)}`;
-
-    const totalDisc = discount + exchange;
-    if (invModalDiscountRow && invModalDiscount) {
-        if (totalDisc > 0) {
-            invModalDiscountRow.style.display = "flex";
-            invModalDiscount.textContent = `-₹${totalDisc.toLocaleString('en-IN')}`;
-        } else {
-            invModalDiscountRow.style.display = "none";
-        }
-    }
-
-    if (invModalGrandTotal) invModalGrandTotal.textContent = `₹${finalAmount.toLocaleString('en-IN')}`;
+    // Populate Modal Elements & Update History UI
+    populatePosInvoiceModal(currentActivePosInvoice);
+    renderPosInvoicesHistory();
 
     // Mark items as sold or reduce inventory stock
     posCart.forEach(cartItem => {
@@ -1618,6 +1565,256 @@ function generateAndPrintBill() {
     if (modalEl) {
         const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
         bsModal.show();
+    }
+}
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function populatePosInvoiceModal(inv) {
+    if (!inv) return;
+    currentActivePosInvoice = inv;
+
+    const invModalNumber = document.getElementById("invModalNumber");
+    const invModalDateTime = document.getElementById("invModalDateTime");
+    const invModalCustName = document.getElementById("invModalCustName");
+    const invModalCustPhone = document.getElementById("invModalCustPhone");
+    const invModalPayMode = document.getElementById("invModalPayMode");
+    const invModalItemsRows = document.getElementById("invModalItemsRows");
+    const invModalTaxable = document.getElementById("invModalTaxable");
+    const invModalCgst = document.getElementById("invModalCgst");
+    const invModalSgst = document.getElementById("invModalSgst");
+    const invModalDiscountRow = document.getElementById("invModalDiscountRow");
+    const invModalDiscount = document.getElementById("invModalDiscount");
+    const invModalGrandTotal = document.getElementById("invModalGrandTotal");
+
+    if (invModalNumber) invModalNumber.textContent = inv.invNumber || 'N/A';
+    if (invModalDateTime) invModalDateTime.textContent = inv.dateTime || '';
+    if (invModalCustName) invModalCustName.textContent = inv.custName || 'Walk-in';
+    if (invModalCustPhone) invModalCustPhone.textContent = inv.custPhone || 'N/A';
+    if (invModalPayMode) {
+        const mode = inv.mode || 'CASH';
+        invModalPayMode.textContent = mode;
+        invModalPayMode.className = (mode === 'CASH' || mode === 'UPI') 
+            ? "badge bg-success-subtle text-success border border-success-subtle fw-bold" 
+            : "badge bg-primary-subtle text-primary border border-primary-subtle fw-bold";
+    }
+
+    if (invModalItemsRows) {
+        const items = inv.items || [];
+        invModalItemsRows.innerHTML = items.map((item, idx) => {
+            const itemPrice = item.price || 0;
+            const itemQty = item.quantity || 1;
+            const itemTaxable = itemPrice / 1.18;
+            const itemGst = itemPrice - itemTaxable;
+            return `
+                <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${escapeHtml(item.name || 'Product')}</div>
+                        <small class="text-muted">IMEI/SN: <code class="bg-light px-1 border rounded text-dark">${escapeHtml(item.imei1 || 'N/A')}</code></small>
+                    </td>
+                    <td class="text-center">${itemQty}</td>
+                    <td class="text-end">₹${itemPrice.toLocaleString('en-IN')}</td>
+                    <td class="text-end">₹${itemTaxable.toFixed(2)}</td>
+                    <td class="text-end">₹${itemGst.toFixed(2)}</td>
+                    <td class="text-end fw-bold text-dark">₹${itemPrice.toLocaleString('en-IN')}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    const taxable = inv.taxableTotal != null ? inv.taxableTotal : ((inv.finalAmount || 0) / 1.18);
+    const cgst = inv.cgst != null ? inv.cgst : (inv.gstTotal ? inv.gstTotal / 2 : 0);
+    const sgst = inv.sgst != null ? inv.sgst : (inv.gstTotal ? inv.gstTotal / 2 : 0);
+
+    if (invModalTaxable) invModalTaxable.textContent = `₹${taxable.toFixed(2)}`;
+    if (invModalCgst) invModalCgst.textContent = `₹${cgst.toFixed(2)}`;
+    if (invModalSgst) invModalSgst.textContent = `₹${sgst.toFixed(2)}`;
+
+    const totalDisc = inv.discount || 0;
+    if (invModalDiscountRow && invModalDiscount) {
+        if (totalDisc > 0) {
+            invModalDiscountRow.style.display = "flex";
+            invModalDiscount.textContent = `-₹${totalDisc.toLocaleString('en-IN')}`;
+        } else {
+            invModalDiscountRow.style.display = "none";
+        }
+    }
+
+    if (invModalGrandTotal) invModalGrandTotal.textContent = `₹${(inv.finalAmount || 0).toLocaleString('en-IN')}`;
+}
+
+function viewPastPosInvoice(invNumber) {
+    try {
+        const history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+        const inv = history.find(b => b.invNumber === invNumber);
+        if (!inv) {
+            alert(currentLang === 'hi' ? "बिल नहीं मिला!" : "Invoice not found!");
+            return;
+        }
+        populatePosInvoiceModal(inv);
+        const modalEl = document.getElementById("posInvoiceModal");
+        if (modalEl) {
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.show();
+        }
+    } catch (e) {
+        console.error("Error opening past invoice:", e);
+    }
+}
+
+function sendPastPosInvoiceWhatsApp(invNumber) {
+    try {
+        const history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+        const inv = history.find(b => b.invNumber === invNumber);
+        if (!inv) return;
+        currentActivePosInvoice = inv;
+        sendPosInvoiceWhatsApp();
+    } catch (e) {}
+}
+
+function filterPosInvoices(query) {
+    renderPosInvoicesHistory(query);
+}
+
+function renderPosInvoicesHistory(filterText = '') {
+    const tableBody = document.getElementById("posInvoicesTableBody");
+    const badgeEl = document.getElementById("posInvoicesCountBadge");
+    const dashContainer = document.getElementById("dashboardRecentInvoicesContainer");
+
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch (e) {
+        history = [];
+    }
+
+    if (badgeEl) {
+        badgeEl.textContent = `${history.length} ${currentLang === 'hi' ? 'बिल' : 'Bills'}`;
+    }
+
+    // Filter if search query is present
+    const q = (filterText || '').toLowerCase().trim();
+    const filtered = q ? history.filter(inv => {
+        const matchNum = (inv.invNumber || '').toLowerCase().includes(q);
+        const matchName = (inv.custName || '').toLowerCase().includes(q);
+        const matchPhone = (inv.custPhone || '').includes(q);
+        const matchItems = (inv.items || []).some(it => (it.name || '').toLowerCase().includes(q) || (it.imei1 || '').includes(q));
+        return matchNum || matchName || matchPhone || matchItems;
+    }) : history;
+
+    // Render POS Counter History Table
+    if (tableBody) {
+        if (filtered.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-receipt fa-2x mb-2 opacity-25"></i>
+                        <div class="fw-semibold text-dark fs-6">${q ? (currentLang === 'hi' ? 'कोई मेल खाता बिल नहीं मिला' : 'No matching invoices found') : (currentLang === 'hi' ? 'अभी कोई बिल इतिहास नहीं है' : 'No Invoices Generated Yet')}</div>
+                        <small class="text-muted">${q ? (currentLang === 'hi' ? 'कृपया अन्य नाम, बिल नंबर या मोबाइल नंबर खोजें।' : 'Try searching by customer name, phone or invoice #.') : (currentLang === 'hi' ? 'ऊपर दिए गए काउंटर से सामान जोड़ें और बिल बनाएं। बिल की पूरी हिस्ट्री यहाँ दिखेगी।' : 'Items billed at the counter will appear here with one-click re-print and WhatsApp.')}</small>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tableBody.innerHTML = filtered.map(inv => {
+                const itemsSummary = (inv.items || []).map(it => `${escapeHtml(it.name || 'Item')} <span class="text-muted small">(x${it.quantity || 1})</span>`).join(", ");
+                const modeClass = (inv.mode === 'CASH' || inv.mode === 'UPI')
+                    ? "badge bg-success-subtle text-success border border-success-subtle"
+                    : "badge bg-primary-subtle text-primary border border-primary-subtle";
+                return `
+                    <tr>
+                        <td>
+                            <span class="fw-bold text-primary font-monospace" role="button" style="cursor: pointer;" onclick="viewPastPosInvoice('${escapeHtml(inv.invNumber)}')">
+                                <i class="fa-solid fa-file-invoice me-1"></i>${escapeHtml(inv.invNumber)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">${escapeHtml(inv.dateTime || '')}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">${escapeHtml(inv.custName || 'Walk-in')}</div>
+                            <small class="text-muted"><i class="fa-solid fa-phone me-1" style="font-size:0.75rem;"></i>${escapeHtml(inv.custPhone || 'N/A')}</small>
+                        </td>
+                        <td style="max-width: 260px;">
+                            <div class="small text-truncate" title="${escapeHtml((inv.items || []).map(i => i.name).join(', '))}">${itemsSummary || '<span class="text-muted">No items</span>'}</div>
+                            <small class="text-muted">${(inv.items || []).length} ${currentLang === 'hi' ? 'आइटम' : 'item(s)'}</small>
+                        </td>
+                        <td>
+                            <span class="${modeClass} fw-semibold">${escapeHtml(inv.mode || 'CASH')}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="fw-bold text-success fs-6">₹${(inv.finalAmount || 0).toLocaleString('en-IN')}</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="viewPastPosInvoice('${escapeHtml(inv.invNumber)}')" title="${currentLang === 'hi' ? 'बिल देखें और PDF प्रिंट करें' : 'View Bill & Print PDF'}">
+                                    <i class="fa-solid fa-print me-1"></i>${currentLang === 'hi' ? 'देखें / PDF' : 'View / PDF'}
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="sendPastPosInvoiceWhatsApp('${escapeHtml(inv.invNumber)}')" title="${currentLang === 'hi' ? 'व्हाट्सएप पर भेजें' : 'Send on WhatsApp'}">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    }
+
+    // Render Dashboard Recent Invoices Container
+    if (dashContainer) {
+        if (history.length === 0) {
+            dashContainer.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center py-4 text-muted text-center">
+                    <i class="fa-solid fa-receipt fa-3x mb-3 opacity-25"></i>
+                    <div class="fw-bold text-dark fs-6">${currentLang === 'hi' ? 'अभी कोई बिल नहीं बनाया गया' : 'No Invoices Yet'}</div>
+                    <small class="text-muted mb-3">${currentLang === 'hi' ? 'फ्रेश काउंटर तैयार है। बिल बनाने के लिए नीचे क्लिक करें!' : 'Fresh counter ready. Click below to bill items!'}</small>
+                    <button class="btn btn-sm btn-primary-custom" onclick="switchView('pos-link')">
+                        <i class="fa-solid fa-plus me-1"></i> ${currentLang === 'hi' ? 'पहला बिल बनाएं' : 'Create First Bill'}
+                    </button>
+                </div>
+            `;
+        } else {
+            const recent = history.slice(0, 5);
+            dashContainer.innerHTML = `
+                <div class="list-group list-group-flush mb-2">
+                    ${recent.map(inv => `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; min-width: 32px;">
+                                    <i class="fa-solid fa-file-invoice" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size: 0.85rem;">
+                                        <span class="font-monospace text-primary">${escapeHtml(inv.invNumber)}</span> - ${escapeHtml(inv.custName || 'Walk-in')}
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">${escapeHtml(inv.dateTime || '')} • <span class="badge bg-light text-dark border">${escapeHtml(inv.mode || 'CASH')}</span></small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-success" style="font-size: 0.88rem;">₹${(inv.finalAmount || 0).toLocaleString('en-IN')}</div>
+                                <button class="btn btn-xs btn-link text-primary p-0 text-decoration-none fw-semibold" onclick="viewPastPosInvoice('${escapeHtml(inv.invNumber)}')" style="font-size: 0.75rem;">
+                                    <i class="fa-solid fa-print me-1"></i>${currentLang === 'hi' ? 'प्रिंट / देखें' : 'View / PDF'}
+                                </button>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+                <div class="text-center pt-2">
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="switchView('pos-link')">
+                        <i class="fa-solid fa-receipt me-1"></i> ${currentLang === 'hi' ? 'POS काउंटर और सभी बिल देखें' : 'Go to POS Counter & All Invoices'}
+                    </button>
+                </div>
+            `;
+        }
     }
 }
 
@@ -1678,6 +1875,11 @@ window.handlePosBarcodeSubmit = handlePosBarcodeSubmit;
 window.generateAndPrintBill = generateAndPrintBill;
 window.sendPosInvoiceWhatsApp = sendPosInvoiceWhatsApp;
 window.sendInvoiceOnWhatsApp = sendInvoiceOnWhatsApp;
+window.renderPosInvoicesHistory = renderPosInvoicesHistory;
+window.viewPastPosInvoice = viewPastPosInvoice;
+window.sendPastPosInvoiceWhatsApp = sendPastPosInvoiceWhatsApp;
+window.filterPosInvoices = filterPosInvoices;
+window.populatePosInvoiceModal = populatePosInvoiceModal;
 
 
 // ==========================================================
