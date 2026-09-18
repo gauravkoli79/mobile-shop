@@ -8,7 +8,7 @@
 // ==========================================================
 const API_BASE = (window.location.protocol === "file:") ? "http://localhost:8000" : "";
 
-const defaultProductsData = [
+const STORE_FALLBACK_PRODUCTS = [
     // 1. Mobiles (Smartphones)
     {
         id: "m1",
@@ -274,6 +274,9 @@ const defaultProductsData = [
 
 // Dynamically initialized product store state
 let productsData = (function() {
+    if (typeof window !== 'undefined' && Array.isArray(window.defaultProductsData) && window.defaultProductsData.length > 0) {
+        return window.defaultProductsData;
+    }
     try {
         const saved = localStorage.getItem('shree_sai_store_products');
         if (saved) {
@@ -281,7 +284,7 @@ let productsData = (function() {
             if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
     } catch(e) {}
-    return defaultProductsData;
+    return STORE_FALLBACK_PRODUCTS;
 })();
 
 // ==========================================================

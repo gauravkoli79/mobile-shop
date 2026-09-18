@@ -385,4 +385,3 @@ window.defaultProductsData = [
     "status": "IN_STOCK"
   }
 ];
-if (typeof defaultProductsData === 'undefined') { var defaultProductsData = window.defaultProductsData; }
