@@ -593,7 +593,7 @@ function normalizeProductToInventory(p) {
         reviews: p.reviews || "1",
         emi: p.emi || `₹${Math.round(selling / 6)}/m`,
         stock: stockQty,
-        status: p.status || (stockQty > 2 ? "IN_STOCK" : (stockQty > 0 ? "LOW_STOCK" : "OUT_OF_STOCK")),
+        status: (stockQty > 2 ? "IN_STOCK" : (stockQty > 0 ? "LOW_STOCK" : "OUT_OF_STOCK")),
         image: p.image || getAutoProductPhoto(p.category, p.brand, p.name)
     };
 }
@@ -613,11 +613,32 @@ function initInventoryTable() {
         .then(data => {
             const prods = Array.isArray(data) ? data : (data.products || []);
             if (Array.isArray(prods) && prods.length > 0) {
-                inventory = prods.map(p => normalizeProductToInventory(p));
+                // If local storage has user edits (like restocked items, updated stock, new products),
+                // preserve local modifications so user restocks are NEVER overwritten!
+                let local = [];
                 try {
-                    localStorage.setItem('shree_sai_store_products', JSON.stringify(prods));
+                    local = JSON.parse(localStorage.getItem('shree_sai_store_products') || '[]');
+                } catch(e) {}
+
+                if (Array.isArray(local) && local.length > 0) {
+                    const map = new Map();
+                    // Seed with base products from server
+                    prods.forEach(p => { if (p && p.id) map.set(String(p.id), p); });
+                    // Overlay local modifications on top
+                    local.forEach(p => { if (p && p.id) map.set(String(p.id), p); });
+                    const merged = Array.from(map.values());
+                    inventory = merged.map(p => normalizeProductToInventory(p));
+                } else {
+                    inventory = prods.map(p => normalizeProductToInventory(p));
+                }
+
+                try {
+                    localStorage.setItem('shree_sai_store_products', JSON.stringify(inventory));
                 } catch(e) {}
                 renderInventoryTable(inventory);
+                if (typeof updateDashboardMetrics === 'function') {
+                    updateDashboardMetrics();
+                }
             } else {
                 loadInventoryFromStorage();
             }
@@ -635,6 +656,7 @@ function loadInventoryFromStorage() {
             if (Array.isArray(parsed) && parsed.length > 0) {
                 inventory = parsed.map(p => normalizeProductToInventory(p));
                 renderInventoryTable(inventory);
+                if (typeof updateDashboardMetrics === 'function') updateDashboardMetrics();
                 return;
             }
         }
@@ -648,14 +670,33 @@ function loadInventoryFromStorage() {
         } catch(e) {}
     }
     renderInventoryTable(inventory);
+    if (typeof updateDashboardMetrics === 'function') updateDashboardMetrics();
 }
 
 // Listen for cross-tab updates via BroadcastChannel
 try {
     const inventoryChannel = new BroadcastChannel('shree_sai_store_channel');
     inventoryChannel.onmessage = (event) => {
-        if (event.data?.type === 'PRODUCT_SAVED' || event.data?.type === 'PRODUCT_DELETED') {
-            initInventoryTable();
+        if (event.data?.type === 'PRODUCT_SAVED' && event.data?.product) {
+            const updated = event.data.product;
+            const idx = inventory.findIndex(i => String(i.id) === String(updated.id));
+            if (idx !== -1) {
+                inventory[idx] = normalizeProductToInventory(updated);
+            } else {
+                inventory.unshift(normalizeProductToInventory(updated));
+            }
+            try {
+                localStorage.setItem('shree_sai_store_products', JSON.stringify(inventory));
+            } catch(e) {}
+            renderInventoryTable(inventory);
+            if (typeof updateDashboardMetrics === 'function') updateDashboardMetrics();
+        } else if (event.data?.type === 'PRODUCT_DELETED') {
+            inventory = inventory.filter(i => String(i.id) !== String(event.data.productId));
+            try {
+                localStorage.setItem('shree_sai_store_products', JSON.stringify(inventory));
+            } catch(e) {}
+            renderInventoryTable(inventory);
+            if (typeof updateDashboardMetrics === 'function') updateDashboardMetrics();
         }
     };
 } catch(e) {}
@@ -2562,7 +2603,10 @@ function updateDashboardMetrics() {
     updateDashboardSalesChart();
 }
 
+let lastRestockedNotice = null;
+
 function openLowStockModal() {
+    lastRestockedNotice = null;
     renderLowStockModalBody();
     const modalEl = document.getElementById("lowStockModal");
     if (modalEl && typeof bootstrap !== "undefined") {
@@ -2580,13 +2624,29 @@ function renderLowStockModalBody() {
         return qty <= 2;
     });
 
+    let noticeHtml = '';
+    if (lastRestockedNotice) {
+        noticeHtml = `
+            <div class="alert alert-success border-0 rounded-3 mb-3 d-flex align-items-center justify-content-between py-2 px-3 small shadow-xs">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-success fa-lg"></i>
+                    <div>
+                        <strong>✅ ${escapeHtml(lastRestockedNotice.name)}</strong> ${currentLang === 'hi' ? 'का स्टॉक' : 'stock added'} <strong>+${lastRestockedNotice.added}</strong>! (${currentLang === 'hi' ? 'अब कुल स्टॉक' : 'Total in stock'}: <strong>${lastRestockedNotice.total}</strong>)
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-sm" onclick="lastRestockedNotice = null; renderLowStockModalBody();"></button>
+            </div>
+        `;
+    }
+
     if (lowStockItems.length === 0) {
         container.innerHTML = `
+            ${noticeHtml}
             <div class="text-center py-5">
                 <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow-xs" style="width: 70px; height: 70px;">
-                    <i class="fa-solid fa-boxes-stacked fa-2x"></i>
+                    <i class="fa-solid fa-circle-check fa-2x"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-1">${currentLang === 'hi' ? 'सभी स्टॉक सुरक्षित हैं!' : 'All Stocks are Healthy!'}</h5>
+                <h5 class="fw-bold text-dark mb-1">${currentLang === 'hi' ? '🎉 सभी स्टॉक सुरक्षित हैं!' : '🎉 All Stocks are Healthy!'}</h5>
                 <p class="text-muted small mb-0">${currentLang === 'hi' ? 'दुकान में किसी भी मॉडल का स्टॉक कम नहीं है। सभी उत्पादों में पर्याप्त मात्रा उपलब्ध है।' : 'No models currently require urgent restocking.'}</p>
             </div>
         `;
@@ -2594,22 +2654,23 @@ function renderLowStockModalBody() {
     }
 
     container.innerHTML = `
-        <div class="alert alert-warning border-0 rounded-3 mb-3 d-flex align-items-center gap-3 py-2 px-3 small">
+        ${noticeHtml}
+        <div class="alert alert-warning border-0 rounded-3 mb-3 d-flex align-items-center gap-3 py-2 px-3 small shadow-xs">
             <i class="fa-solid fa-triangle-exclamation text-warning fa-lg"></i>
             <div>
                 <strong>${lowStockItems.length} ${currentLang === 'hi' ? 'उत्पादों का स्टॉक खत्म होने वाला है!' : 'products are running critically low on stock!'}</strong>
-                <div class="text-muted" style="font-size: 0.8rem;">${currentLang === 'hi' ? 'तुरंत स्टॉक बढ़ाने के लिए नीचे दिए गए "+ Restock" बटन का उपयोग करें।' : 'Click "+ Restock" to immediately add units to inventory.'}</div>
+                <div class="text-muted" style="font-size: 0.8rem;">${currentLang === 'hi' ? 'सीधे +5 या +10 पर क्लिक करके तुरंत स्टॉक बढ़ाएं।' : 'Click +5 or +10 to immediately add stock units.'}</div>
             </div>
         </div>
         <div class="table-responsive border rounded-3 overflow-hidden shadow-xs">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light small text-muted text-uppercase">
                     <tr>
-                        <th style="min-width: 220px;">${currentLang === 'hi' ? 'उत्पाद और मॉडल' : 'Product & Model'}</th>
+                        <th style="min-width: 200px;">${currentLang === 'hi' ? 'उत्पाद और मॉडल' : 'Product & Model'}</th>
                         <th>${currentLang === 'hi' ? 'ब्रांड / श्रेणी' : 'Brand / Category'}</th>
                         <th>${currentLang === 'hi' ? 'कीमत' : 'Price'}</th>
-                        <th>${currentLang === 'hi' ? 'उपलब्ध स्टॉक' : 'Stock Status'}</th>
-                        <th class="text-end" style="min-width: 140px;">${currentLang === 'hi' ? 'कार्रवाई' : 'Quick Action'}</th>
+                        <th>${currentLang === 'hi' ? 'बचा हुआ स्टॉक' : 'Stock Status'}</th>
+                        <th class="text-end" style="min-width: 170px;">${currentLang === 'hi' ? 'स्टॉक जोड़ें (Restock)' : 'Add Stock'}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2636,7 +2697,7 @@ function renderLowStockModalBody() {
                                             <img src="${imgSrc}" alt="${escapeHtml(item.name)}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='images/products/xiaomi_power_bank.jpg'">
                                         </div>
                                         <div style="min-width: 0;">
-                                            <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+                                            <div class="fw-bold text-dark text-truncate" style="max-width: 180px;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
                                             <small class="text-muted font-monospace">${item.imei1 || 'BAR-' + item.id}</small>
                                         </div>
                                     </div>
@@ -2648,9 +2709,17 @@ function renderLowStockModalBody() {
                                 <td class="fw-bold text-dark">₹${price.toLocaleString('en-IN')}</td>
                                 <td>${badgeHtml}</td>
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-success fw-bold px-3 py-1 shadow-xs" onclick="quickRestockItem('${item.id}')">
-                                        <i class="fa-solid fa-plus me-1"></i>${currentLang === 'hi' ? 'स्टॉक जोड़ें' : 'Restock'}
-                                    </button>
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        <button class="btn btn-sm btn-outline-success fw-bold px-2 py-1 shadow-xs" onclick="applyRestockUnits('${item.id}', 5)" title="Add +5 pieces">
+                                            +5
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success fw-bold px-2 py-1 shadow-xs" onclick="applyRestockUnits('${item.id}', 10)" title="Add +10 pieces">
+                                            +10
+                                        </button>
+                                        <button class="btn btn-sm btn-success fw-bold px-2 py-1 shadow-xs text-nowrap" onclick="applyRestockCustom('${item.id}')" title="Custom quantity">
+                                            <i class="fa-solid fa-plus me-1"></i>${currentLang === 'hi' ? 'अन्य' : 'Custom'}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -2685,30 +2754,16 @@ function viewLowStockInInventory() {
     }
 }
 
-function quickRestockItem(id) {
+function applyRestockUnits(id, added) {
     const item = inventory.find(i => String(i.id) === String(id));
     if (!item) return;
 
+    added = parseInt(added);
+    if (isNaN(added) || added <= 0) return;
+
     const currentQty = (typeof item.stock === 'number') ? item.stock : 5;
-    const promptMsg = currentLang === 'hi'
-        ? `📦 '${item.name}' का स्टॉक जोड़ें (Restock):\nवर्तमान स्टॉक: ${currentQty}\n\nकितना नया स्टॉक जोड़ना चाहते हैं? (उदा. 5 या 10):`
-        : `📦 Restock '${item.name}':\nCurrent Stock: ${currentQty}\n\nEnter quantity to add to stock (e.g. 5 or 10):`;
-
-    const input = prompt(promptMsg, "5");
-    if (!input) return;
-
-    const added = parseInt(input);
-    if (isNaN(added) || added <= 0) {
-        alert(currentLang === 'hi' ? "कृपया मान्य संख्या दर्ज करें!" : "Please enter a valid positive number!");
-        return;
-    }
-
     item.stock = currentQty + added;
-    if (item.stock > 2) {
-        item.status = "IN_STOCK";
-    } else if (item.stock > 0) {
-        item.status = "LOW_STOCK";
-    }
+    item.status = (item.stock > 2) ? "IN_STOCK" : (item.stock > 0 ? "LOW_STOCK" : "OUT_OF_STOCK");
 
     // Persist to localStorage
     try {
@@ -2734,24 +2789,42 @@ function quickRestockItem(id) {
         body: JSON.stringify(item)
     }).catch(() => {});
 
-    // Broadcast update
-    try {
-        const bc = new BroadcastChannel('shree_sai_store_channel');
-        bc.postMessage({ type: 'PRODUCT_SAVED', product: item });
-    } catch(e) {}
-
     renderInventoryTable(inventory);
     updateDashboardMetrics();
 
-    // Re-render modal body if modal is currently open
-    const modalEl = document.getElementById("lowStockModal");
-    if (modalEl && modalEl.classList.contains("show")) {
-        renderLowStockModalBody();
+    lastRestockedNotice = {
+        name: item.name,
+        added: added,
+        total: item.stock
+    };
+
+    // Re-render modal body
+    renderLowStockModalBody();
+}
+
+function applyRestockCustom(id) {
+    const item = inventory.find(i => String(i.id) === String(id));
+    if (!item) return;
+
+    const currentQty = (typeof item.stock === 'number') ? item.stock : 5;
+    const promptMsg = currentLang === 'hi'
+        ? `📦 '${item.name}' का स्टॉक जोड़ें (Restock):\nवर्तमान स्टॉक: ${currentQty}\n\nकितना नया स्टॉक जोड़ना चाहते हैं? (संख्या दर्ज करें, उदा. 5 या 10):`
+        : `📦 Restock '${item.name}':\nCurrent Stock: ${currentQty}\n\nEnter quantity to add to stock (e.g. 5 or 10):`;
+
+    const input = prompt(promptMsg, "5");
+    if (!input) return;
+
+    const added = parseInt(input);
+    if (isNaN(added) || added <= 0) {
+        alert(currentLang === 'hi' ? "कृपया मान्य संख्या दर्ज करें!" : "Please enter a valid positive number!");
+        return;
     }
 
-    alert(currentLang === 'hi'
-        ? `✅ '${item.name}' का स्टॉक सफलतापूर्वक बढ़कर ${item.stock} हो गया!`
-        : `✅ '${item.name}' stock updated successfully to ${item.stock}!`);
+    applyRestockUnits(id, added);
+}
+
+function quickRestockItem(id) {
+    applyRestockCustom(id);
 }
 
 function initSalesChart() {
