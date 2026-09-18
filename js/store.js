@@ -342,11 +342,13 @@ window.setLanguage = setStoreLanguage;
 window.setStoreLanguage = setStoreLanguage;
 
 function fetchStoreProducts() {
-    fetch(`${API_BASE}/api/get-products`)
+    const url = API_BASE ? `${API_BASE}/api/get-products` : 'products.json';
+    fetch(url)
         .then(res => res.json())
         .then(data => {
-            if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-                productsData = data.products;
+            const prods = Array.isArray(data) ? data : (data.products || []);
+            if (Array.isArray(prods) && prods.length > 0) {
+                productsData = prods;
                 try {
                     localStorage.setItem('shree_sai_store_products', JSON.stringify(productsData));
                 } catch(e) {}

@@ -265,8 +265,22 @@ function updateModalMargins() {
     }
 }
 
-// Global Inventory State (Loaded from backend / localStorage)
-let inventory = [];
+// Global Inventory State (Loaded from products-data.js / backend / localStorage)
+let inventory = (function() {
+    try {
+        const stored = localStorage.getItem('shree_sai_store_products');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map(p => normalizeProductToInventory(p));
+            }
+        }
+    } catch(e) {}
+    if (typeof window !== 'undefined' && Array.isArray(window.defaultProductsData) && window.defaultProductsData.length > 0) {
+        return window.defaultProductsData.map(p => normalizeProductToInventory(p));
+    }
+    return [];
+})();
 // Customer CRM list initialized cleanly (no dummy data)
 let customers = JSON.parse(localStorage.getItem('shree_sai_customers_list') || '[]');
 
@@ -569,13 +583,24 @@ function normalizeProductToInventory(p) {
 }
 
 function initInventoryTable() {
-    // 1. Fetch live products from backend server
-    fetch(`${API_BASE}/api/get-products`)
+    // 1. Immediately render current inventory (from products-data.js or localStorage)
+    if (!inventory || inventory.length === 0) {
+        loadInventoryFromStorage();
+    } else {
+        renderInventoryTable(inventory);
+    }
+
+    // 2. Fetch live products or static products.json (works seamlessly on Netlify!)
+    const url = API_BASE ? `${API_BASE}/api/get-products` : 'products.json';
+    fetch(url)
         .then(res => res.json())
         .then(data => {
-            if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-                inventory = data.products.map(p => normalizeProductToInventory(p));
-                localStorage.setItem('shree_sai_store_products', JSON.stringify(data.products));
+            const prods = Array.isArray(data) ? data : (data.products || []);
+            if (Array.isArray(prods) && prods.length > 0) {
+                inventory = prods.map(p => normalizeProductToInventory(p));
+                try {
+                    localStorage.setItem('shree_sai_store_products', JSON.stringify(prods));
+                } catch(e) {}
                 renderInventoryTable(inventory);
             } else {
                 loadInventoryFromStorage();
@@ -598,6 +623,14 @@ function loadInventoryFromStorage() {
             }
         }
     } catch(e) {}
+
+    // Fallback directly to central catalog data
+    if (typeof window !== 'undefined' && Array.isArray(window.defaultProductsData) && window.defaultProductsData.length > 0) {
+        inventory = window.defaultProductsData.map(p => normalizeProductToInventory(p));
+        try {
+            localStorage.setItem('shree_sai_store_products', JSON.stringify(window.defaultProductsData));
+        } catch(e) {}
+    }
     renderInventoryTable(inventory);
 }
 
@@ -1163,13 +1196,7 @@ function openPosStockPickerModal() {
     
     // Ensure inventory has items
     if (!inventory || inventory.length === 0) {
-        try {
-            const stored = localStorage.getItem('shree_sai_store_products');
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                inventory = parsed.map(p => normalizeProductToInventory(p));
-            }
-        } catch (e) {}
+        loadInventoryFromStorage();
     }
 
     const searchInput = document.getElementById("posPickerSearchInput");
