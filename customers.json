@@ -1,0 +1,28 @@
+[
+  {
+    "id": "c_9226103801_101",
+    "name": "om gujar",
+    "phone": "9226103801",
+    "address": "Jalgaon Local Counter",
+    "totalPurchases": 276889,
+    "dueAmount": 222899,
+    "creditLimit": 350000,
+    "billedInvoiceIds": [
+      "SSM-2026-INV-1009",
+      "SSM-2026-INV-1010",
+      "SSM-2026-INV-1011"
+    ]
+  },
+  {
+    "id": "c_9829102938_102",
+    "name": "Rahul Sharma",
+    "phone": "9829102938",
+    "address": "Jalgaon Local Counter",
+    "totalPurchases": 175000,
+    "dueAmount": 0,
+    "creditLimit": 50000,
+    "billedInvoiceIds": [
+      "SSM-2026-INV-1001"
+    ]
+  }
+]

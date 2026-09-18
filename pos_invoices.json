@@ -1,5 +1,77 @@
 [
   {
+    "invNumber": "SSM-2026-INV-1011",
+    "dateTime": "18 Sept 2026, 11:45 pm",
+    "custName": "om gujar",
+    "custPhone": "9226103801",
+    "mode": "UDHAR",
+    "items": [
+      {
+        "id": "prod_1789718579776",
+        "name": "Samsung Galaxy S24 Ultra 5G",
+        "imei1": "860863321083531",
+        "price": 102999,
+        "gstRate": 18,
+        "quantity": 1
+      }
+    ],
+    "grossTotal": 102999,
+    "taxableTotal": 87287.29,
+    "gstTotal": 15711.71,
+    "cgst": 7855.85,
+    "sgst": 7855.85,
+    "discount": 0,
+    "finalAmount": 102999
+  },
+  {
+    "invNumber": "SSM-2026-INV-1010",
+    "dateTime": "18 Sept 2026, 11:42 pm",
+    "custName": "om gujar",
+    "custPhone": "9226103801",
+    "mode": "UDHAR",
+    "items": [
+      {
+        "id": "prod_1789718579777",
+        "name": "Apple iPhone 15 Pro",
+        "imei1": "860863321083532",
+        "price": 119900,
+        "gstRate": 18,
+        "quantity": 1
+      }
+    ],
+    "grossTotal": 119900,
+    "taxableTotal": 101610.17,
+    "gstTotal": 18289.83,
+    "cgst": 9144.91,
+    "sgst": 9144.91,
+    "discount": 0,
+    "finalAmount": 119900
+  },
+  {
+    "invNumber": "SSM-2026-INV-1009",
+    "dateTime": "18 Sept 2026, 11:38 pm",
+    "custName": "om gujar",
+    "custPhone": "9226103801",
+    "mode": "CARD",
+    "items": [
+      {
+        "id": "prod_1789718579778",
+        "name": "Sony Bravia Smart LED TV 55 inch",
+        "imei1": "860863321083533",
+        "price": 53990,
+        "gstRate": 18,
+        "quantity": 1
+      }
+    ],
+    "grossTotal": 53990,
+    "taxableTotal": 45754.24,
+    "gstTotal": 8235.76,
+    "cgst": 4117.88,
+    "sgst": 4117.88,
+    "discount": 0,
+    "finalAmount": 53990
+  },
+  {
     "invNumber": "SSM-2026-INV-1001",
     "dateTime": "19 Sept 2026, 12:23 am",
     "custName": "Rahul Sharma",

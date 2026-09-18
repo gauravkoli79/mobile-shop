@@ -30,6 +30,25 @@ UPI_CONFIG_FILE = os.path.join(DIRECTORY, "upi_config.json")
 ORDERS_FILE = os.path.join(DIRECTORY, "orders.json")
 NOTIFS_FILE = os.path.join(DIRECTORY, "notifications.json")
 POS_INVOICES_FILE = os.path.join(DIRECTORY, "pos_invoices.json")
+CUSTOMERS_FILE = os.path.join(DIRECTORY, "customers.json")
+
+def load_customers():
+    if os.path.exists(CUSTOMERS_FILE):
+        try:
+            with open(CUSTOMERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            safe_print("Error loading customers:", e)
+    return []
+
+def save_customers(customers):
+    try:
+        with open(CUSTOMERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(customers, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        safe_print("Error saving customers:", e)
+        return False
 
 def load_pos_invoices():
     if os.path.exists(POS_INVOICES_FILE):
@@ -653,11 +672,36 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
+        # 12. API: Save Customers List (Khata CRM)
+        elif self.path == "/api/save-customers":
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            try:
+                data = json.loads(post_body.decode('utf-8'))
+                cust_list = data if isinstance(data, list) else data.get("customers", [])
+                save_customers(cust_list)
+                safe_print(f"[Customers] Saved {len(cust_list)} customers to customers.json")
+                self.send_json_response(200, {
+                    "success": True,
+                    "message": f"Saved {len(cust_list)} customers successfully!",
+                    "customers": cust_list
+                })
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "message": str(e)})
+            return
+
         # Fallback to default handler
         super().do_POST()
 
     def do_GET(self):
-        if self.path == "/api/get-pos-invoices":
+        if self.path == "/api/get-customers":
+            custs = load_customers()
+            self.send_json_response(200, {
+                "success": True,
+                "customers": custs
+            })
+            return
+        elif self.path == "/api/get-pos-invoices":
             invoices = load_pos_invoices()
             self.send_json_response(200, {
                 "success": True,

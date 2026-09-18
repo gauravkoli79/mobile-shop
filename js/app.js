@@ -414,6 +414,9 @@ function switchView(linkId) {
     if (linkId === "pos-link" || linkId === "dashboard-link") {
         if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
     }
+    if (linkId === "customers-link") {
+        if (typeof syncCustomersFromPosInvoices === "function") syncCustomersFromPosInvoices();
+    }
 
     Object.values(viewMapping).forEach(viewId => {
         const sec = document.getElementById(viewId);
@@ -856,6 +859,19 @@ function deleteItem(id) {
 // ==========================================================
 // 6. Customers CRM & Khata Ledger
 // ==========================================================
+function saveCustomersLocallyAndServer() {
+    try {
+        localStorage.setItem('shree_sai_customers_list', JSON.stringify(customers));
+    } catch (e) {}
+    try {
+        fetch(`${API_BASE}/api/save-customers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(customers)
+        }).catch(() => {});
+    } catch (e) {}
+}
+
 function renderCustomersTable(items) {
     const tbody = document.getElementById("customersTableBody");
     const countBadge = document.getElementById("totalCustomersCount");
@@ -863,52 +879,57 @@ function renderCustomersTable(items) {
 
     if (!tbody) return;
 
-    const totalDue = customers.reduce((sum, c) => sum + c.dueAmount, 0);
-    if (totalDueBadge) totalDueBadge.textContent = `₹${totalDue.toLocaleString('en-IN')}`;
+    const list = Array.isArray(items) ? items : customers;
+    const totalDue = customers.reduce((sum, c) => sum + (Number(c.dueAmount) || 0), 0);
+    if (totalDueBadge) totalDueBadge.textContent = `₹${Math.round(totalDue).toLocaleString('en-IN')}`;
     if (countBadge) countBadge.textContent = customers.length;
 
-    if (items.length === 0) {
+    if (list.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-users-slash fa-3x mb-3 d-block opacity-25"></i>
-                    ${currentLang === 'hi' ? 'कोई ग्राहक रिकॉर्ड नहीं मिला।' : 'No matching customer records found.'}
+                    <div class="fw-semibold text-dark fs-6">${currentLang === 'hi' ? 'कोई ग्राहक रिकॉर्ड नहीं मिला।' : 'No customer records found.'}</div>
+                    <small class="text-muted">${currentLang === 'hi' ? 'POS काउंटर पर उधार बिल बनाएं या ऊपर "नया ग्राहक जोड़ें" पर क्लिक करें।' : 'Create credit/udhar bills at POS or click "Add New Customer" above.'}</small>
                 </td>
             </tr>
         `;
         return;
     }
 
-    tbody.innerHTML = items.map(c => {
-        const hasDue = c.dueAmount > 0;
+    tbody.innerHTML = list.map(c => {
+        const due = Number(c.dueAmount) || 0;
+        const purchases = Number(c.totalPurchases) || 0;
+        const limit = Number(c.creditLimit) || 50000;
+        const hasDue = due > 0;
         const statusBadge = hasDue 
-            ? `<span class="badge bg-danger">₹${c.dueAmount.toLocaleString('en-IN')} ${t('statusDue', 'Due')}</span>` 
+            ? `<span class="badge bg-danger">₹${due.toLocaleString('en-IN')} ${t('statusDue', 'Due')}</span>` 
             : `<span class="badge bg-success">${t('statusClear', 'Settled / Clear')}</span>`;
 
         return `
             <tr>
                 <td>
-                    <div class="fw-bold text-dark">${c.name}</div>
-                    <small class="text-muted">Limit: ₹${c.creditLimit.toLocaleString('en-IN')}</small>
+                    <div class="fw-bold text-dark">${escapeHtml(c.name || 'Customer')}</div>
+                    <small class="text-muted">Limit: ₹${limit.toLocaleString('en-IN')}</small>
                 </td>
                 <td>
-                    <span class="font-monospace fw-semibold">${c.phone}</span>
+                    <span class="font-monospace fw-semibold text-dark">${escapeHtml(c.phone || '-')}</span>
                 </td>
-                <td class="text-muted">${c.address || '-'}</td>
-                <td class="fw-bold">₹${c.totalPurchases.toLocaleString('en-IN')}</td>
+                <td class="text-muted">${escapeHtml(c.address || 'Jalgaon')}</td>
+                <td class="fw-bold">₹${purchases.toLocaleString('en-IN')}</td>
                 <td>
                     <span class="fw-bold ${hasDue ? 'text-danger fs-6' : 'text-success'}">
-                        ₹${c.dueAmount.toLocaleString('en-IN')}
+                        ₹${due.toLocaleString('en-IN')}
                     </span>
                 </td>
                 <td>${statusBadge}</td>
                 <td>
                     <div class="d-flex gap-2">
                         ${hasDue ? `
-                            <button class="btn btn-sm btn-success" onclick="openPayUdharModal('${c.id}')" title="Record Due Payment">
+                            <button class="btn btn-sm btn-success" onclick="openPayUdharModal('${escapeHtml(c.id)}')" title="Record Due Payment">
                                 <i class="fa-solid fa-hand-holding-dollar me-1"></i>${t('payBtn', 'Pay')}
                             </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="sendWhatsAppReminder('${c.phone}', '${c.name}', ${c.dueAmount})" title="Send WhatsApp Reminder">
+                            <button class="btn btn-sm btn-outline-success" onclick="sendWhatsAppReminder('${escapeHtml(c.phone)}', '${escapeHtml(c.name)}', ${due})" title="Send WhatsApp Reminder">
                                 <i class="fa-brands fa-whatsapp"></i>
                             </button>
                         ` : `
@@ -921,15 +942,142 @@ function renderCustomersTable(items) {
     }).join("");
 }
 
-function initCustomersView() {
+function syncCustomersFromPosInvoices() {
+    let invoices = [];
+    try {
+        invoices = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch (e) {
+        invoices = [];
+    }
+
+    // Always sanitize in-memory customers list
+    customers.forEach(c => {
+        if (c) {
+            c.dueAmount = Number(c.dueAmount) || 0;
+            c.totalPurchases = Number(c.totalPurchases) || 0;
+            c.creditLimit = Number(c.creditLimit) || 50000;
+            if (!Array.isArray(c.billedInvoiceIds)) c.billedInvoiceIds = [];
+        }
+    });
+
+    if (!Array.isArray(invoices) || invoices.length === 0) {
+        renderCustomersTable(customers);
+        return;
+    }
+
+    let updated = false;
+    // Process invoices in chronological order (oldest to newest)
+    const reversedInvoices = invoices.slice().reverse();
+
+    reversedInvoices.forEach(inv => {
+        if (!inv || !inv.invNumber) return;
+        const phone = (inv.custPhone || '').trim();
+        const name = (inv.custName || '').trim();
+        if (!phone && !name) return;
+
+        const amount = Number(inv.finalAmount) || 0;
+        const isUdhar = String(inv.mode || '').toUpperCase() === 'UDHAR';
+
+        let cust = customers.find(c => {
+            const phoneMatch = phone && c.phone && c.phone.trim() === phone;
+            const nameMatch = name && c.name && c.name.trim().toLowerCase() === name.toLowerCase();
+            return phoneMatch || nameMatch;
+        });
+
+        if (!cust) {
+            cust = {
+                id: "c_" + (phone ? phone.slice(-6) : Date.now()) + "_" + Math.floor(Math.random() * 1000),
+                name: name || "Customer",
+                phone: phone || "-",
+                address: "Jalgaon Local Counter",
+                totalPurchases: amount,
+                dueAmount: isUdhar ? amount : 0,
+                creditLimit: Math.max(50000, (isUdhar ? amount : 0) * 1.5),
+                billedInvoiceIds: [inv.invNumber]
+            };
+            customers.push(cust);
+            updated = true;
+        } else {
+            cust.dueAmount = Number(cust.dueAmount) || 0;
+            cust.totalPurchases = Number(cust.totalPurchases) || 0;
+            cust.creditLimit = Number(cust.creditLimit) || 50000;
+            if (!Array.isArray(cust.billedInvoiceIds)) {
+                cust.billedInvoiceIds = [];
+            }
+            if (!cust.billedInvoiceIds.includes(inv.invNumber)) {
+                cust.billedInvoiceIds.push(inv.invNumber);
+                cust.totalPurchases += amount;
+                if (isUdhar) {
+                    cust.dueAmount += amount;
+                    cust.creditLimit = Math.max(cust.creditLimit, cust.dueAmount * 1.5);
+                }
+                updated = true;
+            }
+        }
+    });
+
+    if (updated) {
+        saveCustomersLocallyAndServer();
+    }
     renderCustomersTable(customers);
+}
+
+async function loadCustomersFromServer() {
+    try {
+        const res = await fetch(`${API_BASE}/api/get-customers`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.customers) && data.customers.length > 0) {
+            let local = [];
+            try {
+                local = JSON.parse(localStorage.getItem('shree_sai_customers_list') || '[]');
+            } catch (e) {}
+
+            const custMap = new Map();
+            data.customers.forEach(c => {
+                if (c && (c.phone || c.name)) {
+                    const key = (c.phone || c.name).trim().toLowerCase();
+                    custMap.set(key, c);
+                }
+            });
+            local.forEach(c => {
+                if (c && (c.phone || c.name)) {
+                    const key = (c.phone || c.name).trim().toLowerCase();
+                    if (!custMap.has(key)) {
+                        custMap.set(key, c);
+                    } else {
+                        const existing = custMap.get(key);
+                        existing.dueAmount = Math.max(Number(existing.dueAmount) || 0, Number(c.dueAmount) || 0);
+                        existing.totalPurchases = Math.max(Number(existing.totalPurchases) || 0, Number(c.totalPurchases) || 0);
+                        if (Array.isArray(c.billedInvoiceIds)) {
+                            if (!Array.isArray(existing.billedInvoiceIds)) existing.billedInvoiceIds = [];
+                            c.billedInvoiceIds.forEach(id => {
+                                if (!existing.billedInvoiceIds.includes(id)) existing.billedInvoiceIds.push(id);
+                            });
+                        }
+                    }
+                }
+            });
+
+            customers = Array.from(custMap.values());
+            saveCustomersLocallyAndServer();
+            syncCustomersFromPosInvoices();
+        }
+    } catch (e) {
+        // Fallback to local storage
+    }
+}
+
+function initCustomersView() {
+    syncCustomersFromPosInvoices();
+    loadCustomersFromServer();
 
     const searchInput = document.getElementById("customerSearchInput");
     if (searchInput) {
         searchInput.addEventListener("input", () => {
             const q = searchInput.value.toLowerCase().trim();
             const filtered = customers.filter(c => 
-                c.name.toLowerCase().includes(q) || c.phone.includes(q)
+                (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q))
             );
             renderCustomersTable(filtered);
         });
@@ -952,9 +1100,9 @@ function initCustomersView() {
 
             const filter = btn.dataset.filter;
             if (filter === 'DUE') {
-                renderCustomersTable(customers.filter(c => c.dueAmount > 0));
+                renderCustomersTable(customers.filter(c => (Number(c.dueAmount) || 0) > 0));
             } else if (filter === 'CLEAR') {
-                renderCustomersTable(customers.filter(c => c.dueAmount === 0));
+                renderCustomersTable(customers.filter(c => (Number(c.dueAmount) || 0) === 0));
             } else {
                 renderCustomersTable(customers);
             }
@@ -967,19 +1115,23 @@ function initCustomersView() {
             e.preventDefault();
             const newCust = {
                 id: "c_" + Date.now(),
-                name: document.getElementById("custNameInput").value,
-                phone: document.getElementById("custPhoneInput").value,
-                address: document.getElementById("custAddressInput").value,
+                name: (document.getElementById("custNameInput")?.value || "").trim(),
+                phone: (document.getElementById("custPhoneInput")?.value || "").trim(),
+                address: (document.getElementById("custAddressInput")?.value || "").trim() || "Jalgaon Local Counter",
                 totalPurchases: 0,
                 dueAmount: 0,
-                creditLimit: parseFloat(document.getElementById("custCreditLimitInput").value) || 10000
+                creditLimit: parseFloat(document.getElementById("custCreditLimitInput")?.value) || 50000,
+                billedInvoiceIds: []
             };
             customers.unshift(newCust);
-            localStorage.setItem('shree_sai_customers_list', JSON.stringify(customers));
+            saveCustomersLocallyAndServer();
             renderCustomersTable(customers);
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById("addCustomerModal"));
-            if (modal) modal.hide();
+            const modalEl = document.getElementById("addCustomerModal");
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
             addCustForm.reset();
             alert(currentLang === 'hi' ? `नया ग्राहक '${newCust.name}' खाता में जुड़ गया है!` : `Customer record '${newCust.name}' successfully created!`);
         });
@@ -994,19 +1146,27 @@ function initCustomersView() {
             const cust = customers.find(c => c.id === custId);
 
             if (cust) {
-                if (amount > cust.dueAmount) {
+                const currentDue = Number(cust.dueAmount) || 0;
+                if (amount <= 0) {
+                    alert(currentLang === 'hi' ? "कृपया वैध भुगतान राशि दर्ज करें!" : "Please enter a valid payment amount!");
+                    return;
+                }
+                if (amount > currentDue) {
                     alert(currentLang === 'hi' ? "जमा राशि बाकी उधारी से अधिक नहीं हो सकती!" : "Payment amount cannot exceed outstanding balance!");
                     return;
                 }
-                cust.dueAmount -= amount;
-                localStorage.setItem('shree_sai_customers_list', JSON.stringify(customers));
+                cust.dueAmount = Math.max(0, currentDue - amount);
+                saveCustomersLocallyAndServer();
                 renderCustomersTable(customers);
 
-                const modal = bootstrap.Modal.getInstance(document.getElementById("payUdharModal"));
-                if (modal) modal.hide();
+                const modalEl = document.getElementById("payUdharModal");
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
                 alert(currentLang === 'hi' 
-                    ? `सफलतापूर्वक ₹${amount} जमा हुए! ${cust.name} का शेष बकाया: ₹${cust.dueAmount}`
-                    : `Payment of ₹${amount} recorded! ${cust.name}'s remaining balance: ₹${cust.dueAmount}`);
+                    ? `सफलतापूर्वक ₹${amount.toLocaleString('en-IN')} जमा हुए! ${cust.name} का शेष बकाया: ₹${cust.dueAmount.toLocaleString('en-IN')}`
+                    : `Payment of ₹${amount.toLocaleString('en-IN')} recorded! ${cust.name}'s remaining balance: ₹${cust.dueAmount.toLocaleString('en-IN')}`);
             }
         });
     }
@@ -1016,24 +1176,37 @@ function openPayUdharModal(custId) {
     const cust = customers.find(c => c.id === custId);
     if (!cust) return;
 
-    document.getElementById("payUdharCustId").value = cust.id;
-    document.getElementById("payUdharCustName").textContent = `${cust.name} (${cust.phone})`;
-    document.getElementById("payUdharCurrentDue").textContent = `₹${cust.dueAmount.toLocaleString('en-IN')}`;
-    document.getElementById("payUdharAmountInput").value = cust.dueAmount;
-    document.getElementById("payUdharAmountInput").max = cust.dueAmount;
+    const due = Number(cust.dueAmount) || 0;
+    const idInput = document.getElementById("payUdharCustId");
+    const nameSpan = document.getElementById("payUdharCustName");
+    const dueSpan = document.getElementById("payUdharCurrentDue");
+    const amtInput = document.getElementById("payUdharAmountInput");
 
-    const modal = new bootstrap.Modal(document.getElementById("payUdharModal"));
-    modal.show();
+    if (idInput) idInput.value = cust.id;
+    if (nameSpan) nameSpan.textContent = `${cust.name || 'Customer'} (${cust.phone || '-'})`;
+    if (dueSpan) dueSpan.textContent = `₹${due.toLocaleString('en-IN')}`;
+    if (amtInput) {
+        amtInput.value = due;
+        amtInput.max = due;
+    }
+
+    const modalEl = document.getElementById("payUdharModal");
+    if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
 }
 
 function sendWhatsAppReminder(phone, name, amount) {
     let text = "";
+    const cleanPhone = (phone || "").replace(/[^0-9]/g, '').slice(-10);
+    const amtStr = Number(amount || 0).toLocaleString('en-IN');
     if (currentLang === 'hi') {
-        text = encodeURIComponent(`नमस्ते ${name} जी 🙏,\n\nश्री साई मोबाइल शॉप पर आपकी ₹${amount.toLocaleString('en-IN')} की उधारी बकाया है।\nकृपया समय पर भुगतान करें।\n\n- देवेंद्र कोली (श्री साई मोबाइल शॉप)\nसंपर्क: 7972296879`);
+        text = encodeURIComponent(`नमस्ते ${name} जी 🙏,\n\nश्री साई मोबाइल शॉप पर आपकी ₹${amtStr} की उधारी बकाया है।\nकृपया समय पर भुगतान करें।\n\n- देवेंद्र कोली (श्री साई मोबाइल शॉप)\nसंपर्क: 7972296879`);
     } else {
-        text = encodeURIComponent(`Dear ${name},\n\nGreetings from Shree Sai Mobile Shop! 🙏\nThis is a polite reminder regarding your pending balance of ₹${amount.toLocaleString('en-IN')}.\nKindly settle the dues at your earliest convenience.\n\nThank you,\nDevendra Koli (Owner, Shree Sai Mobile Shop)\nContact: 7972296879`);
+        text = encodeURIComponent(`Dear ${name},\n\nGreetings from Shree Sai Mobile Shop! 🙏\nThis is a polite reminder regarding your pending balance of ₹${amtStr}.\nKindly settle the dues at your earliest convenience.\n\nThank you,\nDevendra Koli (Owner, Shree Sai Mobile Shop)\nContact: 7972296879`);
     }
-    const url = `https://api.whatsapp.com/send?phone=91${phone}&text=${text}`;
+    const url = `https://api.whatsapp.com/send?phone=91${cleanPhone}&text=${text}`;
     window.open(url, '_blank');
 }
 
@@ -1554,6 +1727,9 @@ function generateAndPrintBill() {
     // Populate Modal Elements & Update History UI
     populatePosInvoiceModal(currentActivePosInvoice);
     renderPosInvoicesHistory();
+    if (typeof syncCustomersFromPosInvoices === "function") {
+        syncCustomersFromPosInvoices();
+    }
 
     // Mark items as sold or reduce inventory stock
     posCart.forEach(cartItem => {
@@ -1707,9 +1883,31 @@ async function deletePosInvoice(invNumber) {
 
     try {
         let history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+        const targetInv = history.find(inv => inv.invNumber === invNumber);
         history = history.filter(inv => inv.invNumber !== invNumber);
         localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history));
         renderPosInvoicesHistory();
+
+        // Also adjust customer ledger if this invoice was billed to them
+        if (targetInv) {
+            const phone = (targetInv.custPhone || '').trim();
+            const name = (targetInv.custName || '').trim();
+            const amt = Number(targetInv.finalAmount) || 0;
+            const isUdhar = String(targetInv.mode || '').toUpperCase() === 'UDHAR';
+
+            const cust = customers.find(c => (phone && c.phone === phone) || (name && c.name && c.name.toLowerCase() === name.toLowerCase()));
+            if (cust) {
+                if (Array.isArray(cust.billedInvoiceIds)) {
+                    cust.billedInvoiceIds = cust.billedInvoiceIds.filter(id => id !== invNumber);
+                }
+                cust.totalPurchases = Math.max(0, (Number(cust.totalPurchases) || 0) - amt);
+                if (isUdhar) {
+                    cust.dueAmount = Math.max(0, (Number(cust.dueAmount) || 0) - amt);
+                }
+                saveCustomersLocallyAndServer();
+                renderCustomersTable(customers);
+            }
+        }
 
         try {
             await fetch(`${API_BASE}/api/delete-pos-invoice`, {
@@ -1781,6 +1979,9 @@ async function loadPosInvoicesFromServer() {
             const merged = Array.from(map.values());
             localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(merged));
             renderPosInvoicesHistory();
+            if (typeof syncCustomersFromPosInvoices === 'function') {
+                syncCustomersFromPosInvoices();
+            }
 
             if (merged.length > data.invoices.length) {
                 merged.forEach(inv => {
@@ -2000,6 +2201,11 @@ window.populatePosInvoiceModal = populatePosInvoiceModal;
 window.deletePosInvoice = deletePosInvoice;
 window.clearAllPosInvoices = clearAllPosInvoices;
 window.loadPosInvoicesFromServer = loadPosInvoicesFromServer;
+window.renderCustomersTable = renderCustomersTable;
+window.syncCustomersFromPosInvoices = syncCustomersFromPosInvoices;
+window.loadCustomersFromServer = loadCustomersFromServer;
+window.openPayUdharModal = openPayUdharModal;
+window.sendWhatsAppReminder = sendWhatsAppReminder;
 
 
 // ==========================================================
