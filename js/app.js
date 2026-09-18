@@ -60,6 +60,7 @@ function setLanguage(lang) {
     renderRepairsTable(repairs);
     renderPosCart();
     if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
+    if (typeof renderReportsView === "function") renderReportsView();
 
     // 6. Update chart label
     updateChartLanguage();
@@ -416,6 +417,9 @@ function switchView(linkId) {
     }
     if (linkId === "customers-link") {
         if (typeof syncCustomersFromPosInvoices === "function") syncCustomersFromPosInvoices();
+    }
+    if (linkId === "reports-link") {
+        if (typeof renderReportsView === "function") renderReportsView();
     }
 
     Object.values(viewMapping).forEach(viewId => {
@@ -1730,6 +1734,9 @@ function generateAndPrintBill() {
     if (typeof syncCustomersFromPosInvoices === "function") {
         syncCustomersFromPosInvoices();
     }
+    if (typeof renderReportsView === "function") {
+        renderReportsView();
+    }
 
     // Mark items as sold or reduce inventory stock
     posCart.forEach(cartItem => {
@@ -1982,6 +1989,9 @@ async function loadPosInvoicesFromServer() {
             if (typeof syncCustomersFromPosInvoices === 'function') {
                 syncCustomersFromPosInvoices();
             }
+            if (typeof renderReportsView === 'function') {
+                renderReportsView();
+            }
 
             if (merged.length > data.invoices.length) {
                 merged.forEach(inv => {
@@ -2206,6 +2216,165 @@ window.syncCustomersFromPosInvoices = syncCustomersFromPosInvoices;
 window.loadCustomersFromServer = loadCustomersFromServer;
 window.openPayUdharModal = openPayUdharModal;
 window.sendWhatsAppReminder = sendWhatsAppReminder;
+
+// ==========================================================
+// 8.1 Sales & GST Compliance Reports Engine
+// ==========================================================
+function renderReportsView() {
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch(e) {
+        history = [];
+    }
+
+    const taxableEl = document.getElementById("reportTotalTaxableSales");
+    const gstEl = document.getElementById("reportTotalGstOutput");
+    const cgstSgstEl = document.getElementById("reportCgstSgstBreakdown");
+    const turnoverEl = document.getElementById("reportGrossTurnover");
+    const tbody = document.getElementById("reportReconciliationTableBody");
+
+    let totalTaxable = 0;
+    let totalGst = 0;
+    let totalGross = 0;
+
+    // Date grouping map
+    const dayMap = {};
+
+    history.forEach(inv => {
+        if (!inv) return;
+        const amt = Number(inv.finalAmount) || 0;
+        const tax = (inv.taxableTotal != null && !isNaN(Number(inv.taxableTotal))) ? Number(inv.taxableTotal) : (amt / 1.18);
+        const gst = (inv.gstTotal != null && !isNaN(Number(inv.gstTotal))) ? Number(inv.gstTotal) : (amt - tax);
+        const mode = String(inv.mode || 'CASH').toUpperCase();
+
+        totalGross += amt;
+        totalTaxable += tax;
+        totalGst += gst;
+
+        // Extract date part from dateTime (e.g. "18 Sept 2026" from "18 Sept 2026, 11:45 pm")
+        let dStr = (inv.dateTime || '').split(',')[0].trim() || new Date().toLocaleDateString('en-IN');
+        if (!dayMap[dStr]) {
+            dayMap[dStr] = {
+                date: dStr,
+                invoicesCount: 0,
+                cash: 0,
+                upi: 0,
+                card: 0,
+                udhar: 0,
+                total: 0
+            };
+        }
+        dayMap[dStr].invoicesCount += 1;
+        dayMap[dStr].total += amt;
+        if (mode === 'CASH') dayMap[dStr].cash += amt;
+        else if (mode === 'UPI') dayMap[dStr].upi += amt;
+        else if (mode === 'CARD') dayMap[dStr].card += amt;
+        else if (mode === 'UDHAR') dayMap[dStr].udhar += amt;
+        else dayMap[dStr].cash += amt;
+    });
+
+    const cgst = totalGst / 2;
+    const sgst = totalGst / 2;
+
+    if (taxableEl) taxableEl.textContent = `₹${Math.round(totalTaxable).toLocaleString('en-IN')}`;
+    if (gstEl) gstEl.textContent = `₹${Math.round(totalGst).toLocaleString('en-IN')}`;
+    if (cgstSgstEl) cgstSgstEl.textContent = `CGST (9%): ₹${Math.round(cgst).toLocaleString('en-IN')} | SGST (9%): ₹${Math.round(sgst).toLocaleString('en-IN')}`;
+    if (turnoverEl) turnoverEl.textContent = `₹${Math.round(totalGross).toLocaleString('en-IN')}`;
+
+    if (tbody) {
+        const days = Object.values(dayMap);
+        if (days.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-chart-line fa-2x mb-2 d-block opacity-25"></i>
+                        ${currentLang === 'hi' ? 'अभी कोई सेल्स डेटा उपलब्ध नहीं है। POS काउंटर पर बिल बनाएं।' : 'No sales data recorded yet. Create bills at POS.'}
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML = days.map(d => `
+                <tr>
+                    <td class="fw-semibold text-dark">${escapeHtml(d.date)}</td>
+                    <td><span class="badge bg-light text-dark border">${d.invoicesCount} ${currentLang === 'hi' ? 'बिल' : 'Bills'}</span></td>
+                    <td class="text-success fw-semibold">₹${d.cash.toLocaleString('en-IN')}</td>
+                    <td class="text-primary fw-semibold">₹${d.upi.toLocaleString('en-IN')}</td>
+                    <td class="text-secondary fw-semibold">₹${d.card.toLocaleString('en-IN')}</td>
+                    <td class="text-danger fw-semibold">₹${d.udhar.toLocaleString('en-IN')}</td>
+                    <td class="fw-bold text-dark fs-6">₹${d.total.toLocaleString('en-IN')}</td>
+                </tr>
+            `).join("");
+        }
+    }
+}
+
+function exportGstr1Csv() {
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch(e) {
+        history = [];
+    }
+
+    if (history.length === 0) {
+        alert(currentLang === 'hi' ? 'एक्सपोर्ट करने के लिए कोई बिल नहीं है।' : 'No invoices found to export.');
+        return;
+    }
+
+    const headers = [
+        "Invoice Number",
+        "Invoice Date",
+        "Customer Name",
+        "Customer Phone",
+        "HSN / SAC Code",
+        "Item Descriptions",
+        "Payment Mode",
+        "Taxable Value (INR)",
+        "GST Rate (%)",
+        "CGST (INR)",
+        "SGST (INR)",
+        "Total GST (INR)",
+        "Invoice Total (INR)"
+    ];
+
+    const rows = history.map(inv => {
+        const amt = Number(inv.finalAmount) || 0;
+        const taxable = (inv.taxableTotal != null && !isNaN(Number(inv.taxableTotal))) ? Number(inv.taxableTotal) : (amt / 1.18);
+        const gst = (inv.gstTotal != null && !isNaN(Number(inv.gstTotal))) ? Number(inv.gstTotal) : (amt - taxable);
+        const cgst = gst / 2;
+        const sgst = gst / 2;
+        const items = (inv.items || []).map(i => `${i.name || 'Item'} (Qty: ${i.quantity || 1})`).join("; ");
+
+        return [
+            `"${inv.invNumber || ''}"`,
+            `"${inv.dateTime || ''}"`,
+            `"${(inv.custName || 'Walk-in Customer').replace(/"/g, '""')}"`,
+            `"${inv.custPhone || ''}"`,
+            `"8517"`,
+            `"${items.replace(/"/g, '""')}"`,
+            `"${inv.mode || 'CASH'}"`,
+            taxable.toFixed(2),
+            "18%",
+            cgst.toFixed(2),
+            sgst.toFixed(2),
+            gst.toFixed(2),
+            amt.toFixed(2)
+        ].join(",");
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `GSTR1_Sales_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+window.renderReportsView = renderReportsView;
+window.exportGstr1Csv = exportGstr1Csv;
 
 
 // ==========================================================
