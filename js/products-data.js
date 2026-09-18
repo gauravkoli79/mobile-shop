@@ -77,8 +77,8 @@ window.defaultProductsData = [
     "imei1": "359128049182741",
     "purchasePrice": 93675,
     "sellingPrice": 124900,
-    "stock": 5,
-    "status": "IN_STOCK"
+    "stock": 1,
+    "status": "LOW_STOCK"
   },
   {
     "id": "m3",
@@ -286,8 +286,8 @@ window.defaultProductsData = [
     "imei1": "BAR-AUD-SONY1",
     "purchasePrice": 20242,
     "sellingPrice": 26990,
-    "stock": 5,
-    "status": "IN_STOCK"
+    "stock": 2,
+    "status": "LOW_STOCK"
   },
   {
     "id": "a2",
@@ -362,8 +362,8 @@ window.defaultProductsData = [
     "imei1": "BAR-CHG-MI20K",
     "purchasePrice": 1499,
     "sellingPrice": 1999,
-    "stock": 5,
-    "status": "IN_STOCK"
+    "stock": 1,
+    "status": "LOW_STOCK"
   },
   {
     "id": "acc1",

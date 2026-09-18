@@ -62,8 +62,9 @@ function setLanguage(lang) {
     if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
     if (typeof renderReportsView === "function") renderReportsView();
 
-    // 6. Update chart label
+    // 6. Update chart label & dashboard metrics
     updateChartLanguage();
+    if (typeof updateDashboardMetrics === "function") updateDashboardMetrics();
 
     // 7. Update dynamic live clock immediately
     updateAdminLiveClock();
@@ -558,7 +559,10 @@ function renderInventoryTable(items) {
                 </td>
                 <td>${statusBadge}</td>
                 <td>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-light border text-success" title="${currentLang === 'hi' ? 'स्टॉक जोड़ें (Restock)' : 'Add Stock (Restock)'}" onclick="quickRestockItem('${item.id}')">
+                            <i class="fa-solid fa-plus me-1"></i><small class="fw-bold d-none d-md-inline">${currentLang === 'hi' ? 'स्टॉक' : 'Stock'}</small>
+                        </button>
                         <button class="btn btn-sm btn-light border text-danger" title="Remove from Inventory & Store" onclick="deleteItem('${item.id}')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -659,6 +663,7 @@ try {
 function initSearchAndFilter() {
     const searchInput = document.getElementById("inventorySearch");
     const brandFilter = document.getElementById("brandFilter");
+    const stockStatusFilter = document.getElementById("stockStatusFilter");
     const categoryTabs = document.querySelectorAll(".category-filter-btn");
 
     let currentCategory = "ALL";
@@ -666,12 +671,14 @@ function initSearchAndFilter() {
     function applyFilters() {
         const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
         const selectedBrand = brandFilter ? brandFilter.value.toLowerCase() : "all";
+        const selectedStatus = stockStatusFilter ? stockStatusFilter.value : "ALL";
 
         const filtered = inventory.filter(item => {
             const nameStr = (item.name || "").toLowerCase();
             const brandStr = (item.brand || "").toLowerCase();
             const imeiStr = (item.imei1 || "").toLowerCase();
             const catStr = (item.category || "").toLowerCase();
+            const stockQty = (typeof item.stock === 'number') ? item.stock : 5;
 
             const matchesSearch = nameStr.includes(query) ||
                                   brandStr.includes(query) ||
@@ -687,7 +694,16 @@ function initSearchAndFilter() {
                 if (c === "accessories" && (catStr === "accessory" || catStr === "accessories")) matchesCategory = true;
             }
 
-            return matchesSearch && matchesBrand && matchesCategory;
+            let matchesStatus = true;
+            if (selectedStatus === "LOW_STOCK") {
+                matchesStatus = (stockQty <= 2 && stockQty > 0);
+            } else if (selectedStatus === "SOLD") {
+                matchesStatus = (stockQty <= 0 || item.status === "SOLD");
+            } else if (selectedStatus === "IN_STOCK") {
+                matchesStatus = (stockQty > 2);
+            }
+
+            return matchesSearch && matchesBrand && matchesCategory && matchesStatus;
         });
 
         renderInventoryTable(filtered);
@@ -695,6 +711,9 @@ function initSearchAndFilter() {
 
     if (searchInput) searchInput.addEventListener("input", applyFilters);
     if (brandFilter) brandFilter.addEventListener("change", applyFilters);
+    if (stockStatusFilter) stockStatusFilter.addEventListener("change", applyFilters);
+
+    window.applyInventoryFilters = applyFilters;
 
     categoryTabs.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -1748,6 +1767,7 @@ function generateAndPrintBill() {
         if (invItem) {
             if (typeof invItem.stock === 'number' && invItem.stock > 1) {
                 invItem.stock -= 1;
+                if (invItem.stock <= 2) invItem.status = 'LOW_STOCK';
             } else {
                 invItem.status = 'SOLD';
                 invItem.stock = 0;
@@ -1755,6 +1775,12 @@ function generateAndPrintBill() {
         }
     });
     renderInventoryTable(inventory);
+    try {
+        localStorage.setItem('shree_sai_store_products', JSON.stringify(inventory));
+    } catch(e) {}
+    if (typeof updateDashboardMetrics === "function") {
+        updateDashboardMetrics();
+    }
 
     // Clear POS cart
     clearPosCart();
@@ -2505,7 +2531,227 @@ function updateDashboardMetrics() {
     if (cashEl) cashEl.textContent = `₹${Math.round(cashTotal).toLocaleString('en-IN')}`;
     if (upiEl) upiEl.textContent = `₹${Math.round(upiTotal).toLocaleString('en-IN')}`;
 
+    // Dynamic Low Stock Models Calculation
+    let lowStockList = [];
+    if (Array.isArray(inventory)) {
+        lowStockList = inventory.filter(item => {
+            const qty = (typeof item.stock === 'number') ? item.stock : 5;
+            return qty <= 2;
+        });
+    }
+
+    const lowStockCountEl = document.getElementById("dashLowStockCount");
+    const lowStockSubtextEl = document.getElementById("dashLowStockSubtext");
+    if (lowStockCountEl) {
+        lowStockCountEl.textContent = `${lowStockList.length} ${currentLang === 'hi' ? 'मॉडल' : 'Models'}`;
+        if (lowStockList.length === 0) {
+            lowStockCountEl.className = "value text-success";
+            if (lowStockSubtextEl) {
+                lowStockSubtextEl.className = "sub-text text-success";
+                lowStockSubtextEl.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i><span>${currentLang === 'hi' ? 'सभी स्टॉक पर्याप्त हैं' : 'All stocks healthy'}</span>`;
+            }
+        } else {
+            lowStockCountEl.className = "value text-danger";
+            if (lowStockSubtextEl) {
+                lowStockSubtextEl.className = "sub-text text-danger";
+                lowStockSubtextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i><span>${currentLang === 'hi' ? 'कार्रवाई आवश्यक (क्लिक करें)' : 'Action required (Click to view)'}</span>`;
+            }
+        }
+    }
+
     updateDashboardSalesChart();
+}
+
+function openLowStockModal() {
+    renderLowStockModalBody();
+    const modalEl = document.getElementById("lowStockModal");
+    if (modalEl && typeof bootstrap !== "undefined") {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
+}
+
+function renderLowStockModalBody() {
+    const container = document.getElementById("lowStockModalBody");
+    if (!container) return;
+
+    const lowStockItems = (inventory || []).filter(item => {
+        const qty = (typeof item.stock === 'number') ? item.stock : 5;
+        return qty <= 2;
+    });
+
+    if (lowStockItems.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow-xs" style="width: 70px; height: 70px;">
+                    <i class="fa-solid fa-boxes-stacked fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">${currentLang === 'hi' ? 'सभी स्टॉक सुरक्षित हैं!' : 'All Stocks are Healthy!'}</h5>
+                <p class="text-muted small mb-0">${currentLang === 'hi' ? 'दुकान में किसी भी मॉडल का स्टॉक कम नहीं है। सभी उत्पादों में पर्याप्त मात्रा उपलब्ध है।' : 'No models currently require urgent restocking.'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="alert alert-warning border-0 rounded-3 mb-3 d-flex align-items-center gap-3 py-2 px-3 small">
+            <i class="fa-solid fa-triangle-exclamation text-warning fa-lg"></i>
+            <div>
+                <strong>${lowStockItems.length} ${currentLang === 'hi' ? 'उत्पादों का स्टॉक खत्म होने वाला है!' : 'products are running critically low on stock!'}</strong>
+                <div class="text-muted" style="font-size: 0.8rem;">${currentLang === 'hi' ? 'तुरंत स्टॉक बढ़ाने के लिए नीचे दिए गए "+ Restock" बटन का उपयोग करें।' : 'Click "+ Restock" to immediately add units to inventory.'}</div>
+            </div>
+        </div>
+        <div class="table-responsive border rounded-3 overflow-hidden shadow-xs">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted text-uppercase">
+                    <tr>
+                        <th style="min-width: 220px;">${currentLang === 'hi' ? 'उत्पाद और मॉडल' : 'Product & Model'}</th>
+                        <th>${currentLang === 'hi' ? 'ब्रांड / श्रेणी' : 'Brand / Category'}</th>
+                        <th>${currentLang === 'hi' ? 'कीमत' : 'Price'}</th>
+                        <th>${currentLang === 'hi' ? 'उपलब्ध स्टॉक' : 'Stock Status'}</th>
+                        <th class="text-end" style="min-width: 140px;">${currentLang === 'hi' ? 'कार्रवाई' : 'Quick Action'}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${lowStockItems.map(item => {
+                        const qty = (typeof item.stock === 'number') ? item.stock : 0;
+                        const price = item.sellingPrice || item.price || 0;
+                        const fallbackImg = getAutoProductPhoto(item.category, item.brand, item.name);
+                        const imgSrc = item.image || fallbackImg;
+                        
+                        let badgeHtml = '';
+                        if (qty === 0) {
+                            badgeHtml = `<span class="badge bg-dark text-white px-2 py-1"><i class="fa-solid fa-ban me-1"></i>${currentLang === 'hi' ? 'स्टॉक खत्म (0)' : 'Sold Out (0)'}</span>`;
+                        } else if (qty === 1) {
+                            badgeHtml = `<span class="badge bg-danger text-white px-2 py-1"><i class="fa-solid fa-triangle-exclamation me-1"></i>${currentLang === 'hi' ? 'सिर्फ 1 बचा!' : 'Only 1 left!'}</span>`;
+                        } else {
+                            badgeHtml = `<span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-triangle-exclamation me-1"></i>${currentLang === 'hi' ? '2 स्टॉक शेष' : '2 units left'}</span>`;
+                        }
+
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded border p-1 bg-white d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; flex-shrink: 0;">
+                                            <img src="${imgSrc}" alt="${escapeHtml(item.name)}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='images/products/xiaomi_power_bank.jpg'">
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+                                            <small class="text-muted font-monospace">${item.imei1 || 'BAR-' + item.id}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">${item.brand || 'General'}</span>
+                                    <small class="text-muted d-block">${item.category || ''}</small>
+                                </td>
+                                <td class="fw-bold text-dark">₹${price.toLocaleString('en-IN')}</td>
+                                <td>${badgeHtml}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-success fw-bold px-3 py-1 shadow-xs" onclick="quickRestockItem('${item.id}')">
+                                        <i class="fa-solid fa-plus me-1"></i>${currentLang === 'hi' ? 'स्टॉक जोड़ें' : 'Restock'}
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function viewLowStockInInventory() {
+    const modalEl = document.getElementById("lowStockModal");
+    if (modalEl && typeof bootstrap !== "undefined") {
+        const bsModal = bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) bsModal.hide();
+    }
+
+    switchView("inventory-link");
+
+    const statusFilter = document.getElementById("stockStatusFilter");
+    if (statusFilter) {
+        statusFilter.value = "LOW_STOCK";
+    }
+
+    if (typeof window.applyInventoryFilters === "function") {
+        window.applyInventoryFilters();
+    }
+
+    const inventorySection = document.getElementById("inventory-view");
+    if (inventorySection) {
+        inventorySection.scrollIntoView({ behavior: "smooth" });
+    }
+}
+
+function quickRestockItem(id) {
+    const item = inventory.find(i => String(i.id) === String(id));
+    if (!item) return;
+
+    const currentQty = (typeof item.stock === 'number') ? item.stock : 5;
+    const promptMsg = currentLang === 'hi'
+        ? `📦 '${item.name}' का स्टॉक जोड़ें (Restock):\nवर्तमान स्टॉक: ${currentQty}\n\nकितना नया स्टॉक जोड़ना चाहते हैं? (उदा. 5 या 10):`
+        : `📦 Restock '${item.name}':\nCurrent Stock: ${currentQty}\n\nEnter quantity to add to stock (e.g. 5 or 10):`;
+
+    const input = prompt(promptMsg, "5");
+    if (!input) return;
+
+    const added = parseInt(input);
+    if (isNaN(added) || added <= 0) {
+        alert(currentLang === 'hi' ? "कृपया मान्य संख्या दर्ज करें!" : "Please enter a valid positive number!");
+        return;
+    }
+
+    item.stock = currentQty + added;
+    if (item.stock > 2) {
+        item.status = "IN_STOCK";
+    } else if (item.stock > 0) {
+        item.status = "LOW_STOCK";
+    }
+
+    // Persist to localStorage
+    try {
+        let currentStoreProducts = JSON.parse(localStorage.getItem('shree_sai_store_products') || '[]');
+        if (!Array.isArray(currentStoreProducts) || currentStoreProducts.length === 0) {
+            currentStoreProducts = [...inventory];
+        } else {
+            const idx = currentStoreProducts.findIndex(p => String(p.id) === String(id));
+            if (idx !== -1) {
+                currentStoreProducts[idx].stock = item.stock;
+                currentStoreProducts[idx].status = item.status;
+            } else {
+                currentStoreProducts.push(item);
+            }
+        }
+        localStorage.setItem('shree_sai_store_products', JSON.stringify(currentStoreProducts));
+    } catch(e) {}
+
+    // Save to server
+    fetch(`${API_BASE}/api/save-product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+    }).catch(() => {});
+
+    // Broadcast update
+    try {
+        const bc = new BroadcastChannel('shree_sai_store_channel');
+        bc.postMessage({ type: 'PRODUCT_SAVED', product: item });
+    } catch(e) {}
+
+    renderInventoryTable(inventory);
+    updateDashboardMetrics();
+
+    // Re-render modal body if modal is currently open
+    const modalEl = document.getElementById("lowStockModal");
+    if (modalEl && modalEl.classList.contains("show")) {
+        renderLowStockModalBody();
+    }
+
+    alert(currentLang === 'hi'
+        ? `✅ '${item.name}' का स्टॉक सफलतापूर्वक बढ़कर ${item.stock} हो गया!`
+        : `✅ '${item.name}' stock updated successfully to ${item.stock}!`);
 }
 
 function initSalesChart() {

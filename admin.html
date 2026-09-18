@@ -294,12 +294,12 @@
                     </div>
 
                     <div class="col-6 col-xl-3">
-                        <div class="metric-card">
+                        <div class="metric-card cursor-pointer" id="dashLowStockCard" onclick="openLowStockModal()" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" title="Click to view all low stock models">
                             <div class="metric-info">
                                 <h6 data-i18n="lowStock">Low Stock Alert</h6>
-                                <div class="value text-danger" data-i18n="modelsLow">3 Models</div>
-                                <div class="sub-text text-danger">
-                                    <i class="fa-solid fa-triangle-exclamation me-1"></i><span data-i18n="actionRequired">Action required</span>
+                                <div class="value text-danger" id="dashLowStockCount">3 Models</div>
+                                <div class="sub-text text-danger" id="dashLowStockSubtext">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i><span data-i18n="actionRequired">Action required (Click to view)</span>
                                 </div>
                             </div>
                             <div class="metric-icon-box icon-amber">
@@ -448,7 +448,7 @@
                 <!-- Filter & Search Controls -->
                 <div class="custom-card mb-4 p-3">
                     <div class="row g-2 align-items-center">
-                        <div class="col-12 col-md-5">
+                        <div class="col-12 col-md-4">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted">
                                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -457,7 +457,7 @@
                             </div>
                         </div>
 
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-2">
                             <select id="brandFilter" class="form-select">
                                 <option value="ALL" data-i18n="allBrands">All Brands</option>
                                 <option value="Xiaomi">Xiaomi / Mi</option>
@@ -475,6 +475,15 @@
                             </select>
                         </div>
 
+                        <div class="col-6 col-md-2">
+                            <select id="stockStatusFilter" class="form-select border-danger-subtle fw-semibold">
+                                <option value="ALL">📦 All Stock</option>
+                                <option value="LOW_STOCK" class="text-danger fw-bold">⚠️ Low Stock (≤ 2)</option>
+                                <option value="SOLD" class="text-muted">⛔ Sold Out (0)</option>
+                                <option value="IN_STOCK" class="text-success">✅ In Stock (> 2)</option>
+                            </select>
+                        </div>
+
                         <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
                             <div class="btn-group flex-wrap" role="group">
                                 <button type="button" class="btn btn-primary btn-sm category-filter-btn active" data-category="ALL" data-i18n="tabAll">All</button>
@@ -482,7 +491,7 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="tvs">TVs</button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="washing_machines">Washers</button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="audio">Audio</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="chargers">Chargers & Power Banks</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="chargers">Chargers</button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm category-filter-btn" data-category="accessories">Accessories</button>
                             </div>
                         </div>
@@ -1578,6 +1587,40 @@
         </div>
     </div>
 </div>
+
+<!-- ==========================================================
+     MODAL 5: Low Stock Alert & Restock Modal
+     ========================================================== -->
+<div class="modal fade" id="lowStockModal" tabindex="-1" aria-labelledby="lowStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger-subtle text-danger border-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-danger mb-0" id="lowStockModalLabel">Low Stock Alert (कम स्टॉक अलर्ट)</h5>
+                        <small class="text-muted">Products with 2 or fewer units remaining in shop stock (स्टॉक में 2 या उससे कम बचे उत्पाद)</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="lowStockModalBody">
+                <!-- Dynamically generated list of low stock items -->
+            </div>
+            <div class="modal-footer bg-light border-0 px-4 py-3 d-flex justify-content-between">
+                <button type="button" class="btn btn-primary fw-bold" onclick="viewLowStockInInventory()">
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> <span data-i18n="viewAllInInventory">View in Inventory Table (इन्वेंटरी में देखें)</span>
+                </button>
+                <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">
+                    Close (बंद करें)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Real-time Order Notification Toast Container -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 99999; pointer-events: none;">
