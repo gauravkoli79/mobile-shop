@@ -838,10 +838,14 @@
                             <span class="badge bg-primary rounded-pill ms-2" id="posInvoicesCountBadge">0 Bills</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="input-group input-group-sm" style="max-width: 280px;">
+                            <div class="input-group input-group-sm" style="max-width: 250px;">
                                 <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
                                 <input type="text" id="posHistorySearchInput" class="form-control" placeholder="Search bill #, phone or name..." oninput="filterPosInvoices(this.value)">
                             </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 flex-shrink-0" onclick="clearAllPosInvoices()" title="Clear all invoice history">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span data-i18n="clearAllInvoices">Clear All</span>
+                            </button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -854,7 +858,7 @@
                                     <th>Billed Items</th>
                                     <th>Mode</th>
                                     <th class="text-end">Grand Total (₹)</th>
-                                    <th class="text-end" style="width: 170px;">Actions</th>
+                                    <th class="text-end" style="width: 210px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="posInvoicesTableBody">

@@ -383,7 +383,9 @@ const translations = {
         catAccessoriesTitle: "Covers & Tempered Glass",
         allCategoriesBtn: "All Categories ▾",
         posHistoryTitle: "Recent Invoices & POS Bill History",
-        posHistorySubtitle: "Re-print past bills, download PDF, or send to customer on WhatsApp"
+        posHistorySubtitle: "Re-print past bills, download PDF, or send to customer on WhatsApp",
+        clearAllInvoices: "Clear All",
+        deleteBillTitle: "Delete Bill"
     },
 
     hi: {
@@ -766,6 +768,8 @@ const translations = {
         catAccessoriesTitle: "कवर्स और टेम्पर्ड ग्लास",
         allCategoriesBtn: "सभी कैटेगरी ▾",
         posHistoryTitle: "हाल ही में बनाए गए बिलों का इतिहास (POS Bill History)",
-        posHistorySubtitle: "पुराने बिल पुनः प्रिंट करें, PDF डाउनलोड करें या ग्राहक को WhatsApp पर भेजें"
+        posHistorySubtitle: "पुराने बिल पुनः प्रिंट करें, PDF डाउनलोड करें या ग्राहक को WhatsApp पर भेजें",
+        clearAllInvoices: "सभी साफ़ करें",
+        deleteBillTitle: "बिल हटाएं"
     }
 };

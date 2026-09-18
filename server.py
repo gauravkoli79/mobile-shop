@@ -29,6 +29,25 @@ CONFIG_FILE = os.path.join(DIRECTORY, "sms_config.json")
 UPI_CONFIG_FILE = os.path.join(DIRECTORY, "upi_config.json")
 ORDERS_FILE = os.path.join(DIRECTORY, "orders.json")
 NOTIFS_FILE = os.path.join(DIRECTORY, "notifications.json")
+POS_INVOICES_FILE = os.path.join(DIRECTORY, "pos_invoices.json")
+
+def load_pos_invoices():
+    if os.path.exists(POS_INVOICES_FILE):
+        try:
+            with open(POS_INVOICES_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            safe_print("Error loading pos invoices:", e)
+    return []
+
+def save_pos_invoices(invoices):
+    try:
+        with open(POS_INVOICES_FILE, "w", encoding="utf-8") as f:
+            json.dump(invoices, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        safe_print("Error saving pos invoices:", e)
+        return False
 
 def safe_print(*args, **kwargs):
     try:
@@ -575,11 +594,77 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response(500, {"success": False, "message": str(e)})
             return
 
+        # 9. API: Save POS Billing Invoice (Permanent Storage)
+        elif self.path == "/api/save-pos-invoice":
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            try:
+                inv_data = json.loads(post_body.decode('utf-8'))
+                inv_num = inv_data.get("invNumber")
+                if not inv_num:
+                    self.send_json_response(400, {"success": False, "message": "Missing invNumber"})
+                    return
+                invoices = load_pos_invoices()
+                # Deduplicate by invNumber
+                invoices = [i for i in invoices if i.get("invNumber") != inv_num]
+                invoices.insert(0, inv_data)
+                save_pos_invoices(invoices)
+                safe_print(f"[POS] Saved bill {inv_num} for {inv_data.get('custName')}")
+                self.send_json_response(200, {
+                    "success": True,
+                    "message": "POS invoice saved to server permanently!",
+                    "invoices": invoices
+                })
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "message": str(e)})
+            return
+
+        # 10. API: Delete POS Invoice (Admin Explicit Action)
+        elif self.path == "/api/delete-pos-invoice":
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            try:
+                data = json.loads(post_body.decode('utf-8'))
+                inv_num = data.get("invNumber")
+                if not inv_num:
+                    self.send_json_response(400, {"success": False, "message": "Missing invNumber"})
+                    return
+                invoices = load_pos_invoices()
+                invoices = [i for i in invoices if i.get("invNumber") != inv_num]
+                save_pos_invoices(invoices)
+                safe_print(f"[POS] Admin deleted bill {inv_num}")
+                self.send_json_response(200, {
+                    "success": True,
+                    "message": f"Invoice {inv_num} deleted from server!",
+                    "invoices": invoices
+                })
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "message": str(e)})
+            return
+
+        # 11. API: Clear All POS Invoices (Admin Explicit Action)
+        elif self.path == "/api/clear-pos-invoices":
+            save_pos_invoices([])
+            safe_print("[POS] Admin cleared all POS invoices history")
+            self.send_json_response(200, {
+                "success": True,
+                "message": "All POS invoices history cleared from server!",
+                "invoices": []
+            })
+            return
+
         # Fallback to default handler
         super().do_POST()
 
     def do_GET(self):
-        if self.path == "/api/get-products":
+        if self.path == "/api/get-pos-invoices":
+            invoices = load_pos_invoices()
+            self.send_json_response(200, {
+                "success": True,
+                "invoices": invoices
+            })
+            return
+        elif self.path == "/api/get-products":
             prods = load_products()
             self.send_json_response(200, {
                 "success": True,

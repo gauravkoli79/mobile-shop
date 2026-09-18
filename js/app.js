@@ -1183,6 +1183,7 @@ function initPosBilling() {
     if (discountInput) discountInput.addEventListener("input", updatePosTotals);
     if (exchangeInput) exchangeInput.addEventListener("input", updatePosTotals);
     if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
+    if (typeof loadPosInvoicesFromServer === "function") loadPosInvoicesFromServer();
 }
 
 let currentActivePosInvoice = null;
@@ -1532,11 +1533,22 @@ function generateAndPrintBill() {
         finalAmount
     };
 
-    // Save to local POS invoice history
+    // Save to local POS invoice history (permanent until deleted)
     try {
         const history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
-        history.unshift(currentActivePosInvoice);
-        localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history.slice(0, 100)));
+        // Prevent duplicates
+        const filtered = history.filter(h => h.invNumber !== currentActivePosInvoice.invNumber);
+        filtered.unshift(currentActivePosInvoice);
+        localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(filtered));
+    } catch (e) {}
+
+    // Permanently sync bill to server pos_invoices.json
+    try {
+        fetch(`${API_BASE}/api/save-pos-invoice`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(currentActivePosInvoice)
+        }).catch(() => {});
     } catch (e) {}
 
     // Populate Modal Elements & Update History UI
@@ -1685,6 +1697,108 @@ function filterPosInvoices(query) {
     renderPosInvoicesHistory(query);
 }
 
+async function deletePosInvoice(invNumber) {
+    if (!invNumber) return;
+    const confirmMsg = currentLang === 'hi'
+        ? `क्या आप वाकई बिल #${invNumber} को हमेशा के लिए हटाना (Delete) चाहते हैं?\n(यह बिल इतिहास से स्थायी रूप से मिट जाएगा)`
+        : `Are you sure you want to permanently delete Invoice #${invNumber}?\n(This will be removed permanently from billing history)`;
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        let history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+        history = history.filter(inv => inv.invNumber !== invNumber);
+        localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history));
+        renderPosInvoicesHistory();
+
+        try {
+            await fetch(`${API_BASE}/api/delete-pos-invoice`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ invNumber })
+            });
+        } catch (err) {}
+
+        alert(currentLang === 'hi' ? `✅ बिल #${invNumber} सफलतापूर्वक हटा दिया गया!` : `✅ Invoice #${invNumber} deleted successfully!`);
+    } catch (e) {
+        console.error("Error deleting invoice:", e);
+    }
+}
+
+async function clearAllPosInvoices() {
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch (e) {}
+
+    if (history.length === 0) {
+        alert(currentLang === 'hi' ? "इतिहास में कोई बिल नहीं है।" : "No invoices found in history.");
+        return;
+    }
+
+    const confirmMsg = currentLang === 'hi'
+        ? `⚠️ क्या आप वाकई सभी (${history.length}) बिलों का इतिहास हटाना चाहते हैं?\nयह क्रिया वापस (Undo) नहीं की जा सकती!`
+        : `⚠️ Are you sure you want to clear all (${history.length}) invoices from history?\nThis action cannot be undone!`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        localStorage.removeItem('shree_sai_pos_invoices');
+        renderPosInvoicesHistory();
+
+        try {
+            await fetch(`${API_BASE}/api/clear-pos-invoices`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (err) {}
+
+        alert(currentLang === 'hi' ? "✅ सभी बिल इतिहास सफलतापूर्वक साफ़ कर दिया गया!" : "✅ All invoice history cleared successfully!");
+    } catch (e) {
+        console.error("Error clearing invoice history:", e);
+    }
+}
+
+async function loadPosInvoicesFromServer() {
+    try {
+        const res = await fetch(`${API_BASE}/api/get-pos-invoices`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.invoices)) {
+            let local = [];
+            try {
+                local = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+            } catch (e) {}
+
+            const map = new Map();
+            data.invoices.forEach(inv => {
+                if (inv && inv.invNumber) map.set(inv.invNumber, inv);
+            });
+            local.forEach(inv => {
+                if (inv && inv.invNumber) map.set(inv.invNumber, inv);
+            });
+
+            const merged = Array.from(map.values());
+            localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(merged));
+            renderPosInvoicesHistory();
+
+            if (merged.length > data.invoices.length) {
+                merged.forEach(inv => {
+                    if (!data.invoices.some(si => si.invNumber === inv.invNumber)) {
+                        fetch(`${API_BASE}/api/save-pos-invoice`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(inv)
+                        }).catch(() => {});
+                    }
+                });
+            }
+        }
+    } catch (e) {
+        // Fallback to local storage
+    }
+}
+
 function renderPosInvoicesHistory(filterText = '') {
     const tableBody = document.getElementById("posInvoicesTableBody");
     const badgeEl = document.getElementById("posInvoicesCountBadge");
@@ -1760,6 +1874,9 @@ function renderPosInvoicesHistory(filterText = '') {
                                 </button>
                                 <button type="button" class="btn btn-outline-success" onclick="sendPastPosInvoiceWhatsApp('${escapeHtml(inv.invNumber)}')" title="${currentLang === 'hi' ? 'व्हाट्सएप पर भेजें' : 'Send on WhatsApp'}">
                                     <i class="fa-brands fa-whatsapp"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="deletePosInvoice('${escapeHtml(inv.invNumber)}')" title="${currentLang === 'hi' ? 'बिल हमेशा के लिए हटाएं (Delete)' : 'Delete Bill'}">
+                                    <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </td>
@@ -1880,6 +1997,9 @@ window.viewPastPosInvoice = viewPastPosInvoice;
 window.sendPastPosInvoiceWhatsApp = sendPastPosInvoiceWhatsApp;
 window.filterPosInvoices = filterPosInvoices;
 window.populatePosInvoiceModal = populatePosInvoiceModal;
+window.deletePosInvoice = deletePosInvoice;
+window.clearAllPosInvoices = clearAllPosInvoices;
+window.loadPosInvoicesFromServer = loadPosInvoicesFromServer;
 
 
 // ==========================================================

@@ -1,0 +1,26 @@
+[
+  {
+    "invNumber": "SSM-2026-INV-1001",
+    "dateTime": "19 Sept 2026, 12:23 am",
+    "custName": "Rahul Sharma",
+    "custPhone": "9829102938",
+    "mode": "UPI",
+    "items": [
+      {
+        "id": "prod_1789718579775",
+        "name": "iphone 16 pro max",
+        "imei1": "860863321083530",
+        "price": 175000,
+        "gstRate": 18,
+        "quantity": 1
+      }
+    ],
+    "grossTotal": 175000,
+    "taxableTotal": 148305.08474576272,
+    "gstTotal": 26694.915254237276,
+    "cgst": 13347.457627118638,
+    "sgst": 13347.457627118638,
+    "discount": 0,
+    "finalAmount": 175000
+  }
+]
