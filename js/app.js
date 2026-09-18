@@ -414,6 +414,7 @@ function switchView(linkId) {
     }
     if (linkId === "pos-link" || linkId === "dashboard-link") {
         if (typeof renderPosInvoicesHistory === "function") renderPosInvoicesHistory();
+        if (typeof updateDashboardMetrics === "function") updateDashboardMetrics();
     }
     if (linkId === "customers-link") {
         if (typeof syncCustomersFromPosInvoices === "function") syncCustomersFromPosInvoices();
@@ -1737,6 +1738,9 @@ function generateAndPrintBill() {
     if (typeof renderReportsView === "function") {
         renderReportsView();
     }
+    if (typeof updateDashboardMetrics === "function") {
+        updateDashboardMetrics();
+    }
 
     // Mark items as sold or reduce inventory stock
     posCart.forEach(cartItem => {
@@ -1894,6 +1898,8 @@ async function deletePosInvoice(invNumber) {
         history = history.filter(inv => inv.invNumber !== invNumber);
         localStorage.setItem('shree_sai_pos_invoices', JSON.stringify(history));
         renderPosInvoicesHistory();
+        if (typeof renderReportsView === "function") renderReportsView();
+        if (typeof updateDashboardMetrics === "function") updateDashboardMetrics();
 
         // Also adjust customer ledger if this invoice was billed to them
         if (targetInv) {
@@ -1950,6 +1956,8 @@ async function clearAllPosInvoices() {
     try {
         localStorage.removeItem('shree_sai_pos_invoices');
         renderPosInvoicesHistory();
+        if (typeof renderReportsView === "function") renderReportsView();
+        if (typeof updateDashboardMetrics === "function") updateDashboardMetrics();
 
         try {
             await fetch(`${API_BASE}/api/clear-pos-invoices`, {
@@ -1991,6 +1999,9 @@ async function loadPosInvoicesFromServer() {
             }
             if (typeof renderReportsView === 'function') {
                 renderReportsView();
+            }
+            if (typeof updateDashboardMetrics === 'function') {
+                updateDashboardMetrics();
             }
 
             if (merged.length > data.invoices.length) {
@@ -2433,6 +2444,70 @@ function initMobileSidebar() {
     });
 }
 
+function updateDashboardSalesChart() {
+    if (!salesChartInstance) return;
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch(e) {}
+
+    const brands = {
+        'Apple': 0,
+        'Samsung': 0,
+        'Sony / TV': 0,
+        'OnePlus': 0,
+        'Xiaomi': 0,
+        'Other / Acc': 0
+    };
+
+    history.forEach(inv => {
+        (inv.items || []).forEach(item => {
+            const name = (item.name || '').toLowerCase();
+            const price = Number(item.price) || 0;
+            if (name.includes('apple') || name.includes('iphone')) brands['Apple'] += price;
+            else if (name.includes('samsung') || name.includes('galaxy')) brands['Samsung'] += price;
+            else if (name.includes('sony') || name.includes('tv') || name.includes('bravia')) brands['Sony / TV'] += price;
+            else if (name.includes('oneplus')) brands['OnePlus'] += price;
+            else if (name.includes('xiaomi') || name.includes('redmi') || name.includes('mi ')) brands['Xiaomi'] += price;
+            else brands['Other / Acc'] += price;
+        });
+    });
+
+    salesChartInstance.data.labels = Object.keys(brands);
+    salesChartInstance.data.datasets[0].data = Object.values(brands).map(v => Math.round(v / 1000));
+    salesChartInstance.data.datasets[0].label = currentLang === 'hi' ? 'ब्रांड बिक्री (₹ हजार में)' : 'Brand Sales (in ₹ Thousands)';
+    salesChartInstance.update();
+}
+
+function updateDashboardMetrics() {
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('shree_sai_pos_invoices') || '[]');
+    } catch(e) {}
+
+    let todayTotal = 0;
+    let cashTotal = 0;
+    let upiTotal = 0;
+
+    history.forEach(inv => {
+        const amt = Number(inv.finalAmount) || 0;
+        const mode = String(inv.mode || 'CASH').toUpperCase();
+        if (mode === 'CASH') cashTotal += amt;
+        if (mode === 'UPI') upiTotal += amt;
+        todayTotal += amt;
+    });
+
+    const todayEl = document.getElementById("dashTodayTotalSales");
+    const cashEl = document.getElementById("dashCashInDrawer");
+    const upiEl = document.getElementById("dashUpiCollections");
+
+    if (todayEl) todayEl.textContent = `₹${Math.round(todayTotal).toLocaleString('en-IN')}`;
+    if (cashEl) cashEl.textContent = `₹${Math.round(cashTotal).toLocaleString('en-IN')}`;
+    if (upiEl) upiEl.textContent = `₹${Math.round(upiTotal).toLocaleString('en-IN')}`;
+
+    updateDashboardSalesChart();
+}
+
 function initSalesChart() {
     const ctx = document.getElementById('salesChart');
     if (!ctx) return;
@@ -2440,29 +2515,48 @@ function initSalesChart() {
     salesChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Samsung', 'Apple', 'Xiaomi', 'Vivo', 'OnePlus', 'Boat Acc.'],
+            labels: ['Apple', 'Samsung', 'Sony / TV', 'OnePlus', 'Xiaomi', 'Other / Acc'],
             datasets: [{
-                label: currentLang === 'hi' ? 'मासिक बिक्री (₹ हजार में)' : 'Monthly Turnover (in ₹ Thousands)',
-                data: [180, 240, 95, 120, 85, 45],
-                backgroundColor: ['#3b82f6', '#0f172a', '#f97316', '#06b6d4', '#ef4444', '#8b5cf6'],
+                label: currentLang === 'hi' ? 'ब्रांड बिक्री (₹ हजार में)' : 'Brand Sales (in ₹ Thousands)',
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: ['#0f172a', '#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6'],
                 borderRadius: 8
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: true, position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` ₹${(context.parsed.y * 1000).toLocaleString('en-IN')}`;
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        callback: function(value) {
+                            return `₹${value}k`;
+                        }
+                    }
+                },
                 x: { grid: { display: false } }
             }
         }
     });
+
+    updateDashboardMetrics();
 }
 
 function updateChartLanguage() {
     if (!salesChartInstance) return;
-    salesChartInstance.data.datasets[0].label = currentLang === 'hi' ? 'मासिक बिक्री (₹ हजार में)' : 'Monthly Turnover (in ₹ Thousands)';
+    salesChartInstance.data.datasets[0].label = currentLang === 'hi' ? 'ब्रांड बिक्री (₹ हजार में)' : 'Brand Sales (in ₹ Thousands)';
     salesChartInstance.update();
 }
 
