@@ -389,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initBrandClicks();
     initStoreSearch();
     updateCartBadges();
+    updateMyOrdersBadge();
     checkLoggedInUser();
     initStoreCarousel();
     fetchUpiConfig();
@@ -1918,6 +1919,19 @@ function executeOrderPlacement(name, phone, address, paymentMethod) {
     existingOrders.unshift(orderData);
     localStorage.setItem('shree_sai_online_orders', JSON.stringify(existingOrders));
 
+    // 1b. Track in customer's My Orders history
+    try {
+        const myOrders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+        const mIdx = myOrders.findIndex(o => o.orderId === orderData.orderId);
+        if (mIdx >= 0) {
+            myOrders[mIdx] = orderData;
+        } else {
+            myOrders.unshift(orderData);
+        }
+        localStorage.setItem('shree_sai_my_orders', JSON.stringify(myOrders));
+        updateMyOrdersBadge();
+    } catch(e) {}
+
     // 1b. Sync order to central server so Admin Dashboard sees it LIVE from ANY phone or device!
     try {
         fetch(`${API_BASE}/api/create-order`, {
@@ -2150,101 +2164,413 @@ function payWithUpi(appName) {
     }, 1800);
 }
 
-function confirmUpiPaymentSubmission() {
+// ==========================================================
+// UPI Payment Completion & Customer Printable Receipt & History
+// ==========================================================
+let currentActiveReceiptOrder = null;
+
+function completeCustomerPayment() {
     if (!currentActiveUpiOrder) {
-        alert(currentLang === 'hi' ? "कोई सक्रिय ऑर्डर नहीं मिला।" : "No active order found.");
-        return;
+        // Fallback: try latest from shree_sai_online_orders
+        const existingOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
+        if (existingOrders.length > 0) {
+            currentActiveUpiOrder = existingOrders[0];
+        } else {
+            alert(currentLang === 'hi' ? "कोई सक्रिय ऑर्डर नहीं मिला।" : "No active order found.");
+            return;
+        }
     }
 
-    const utrInput = document.getElementById("upiUtrNumberInput");
-    const utr = utrInput ? utrInput.value.trim() : "";
+    // Set status to "Ordered Placed on UPI"
+    currentActiveUpiOrder.paymentMethod = currentActiveUpiOrder.paymentMethod || "Paid Online via UPI";
+    currentActiveUpiOrder.paymentStatus = "Ordered Placed on UPI";
+    currentActiveUpiOrder.status = "Ordered Placed on UPI";
+    currentActiveUpiOrder.isPaid = true;
+    currentActiveUpiOrder.paidAt = new Date().toISOString();
 
-    currentActiveUpiOrder.utrNumber = utr;
-    currentActiveUpiOrder.paymentMethod = "Paid Online via PhonePe/GPay";
-    currentActiveUpiOrder.paymentStatus = "Paid (Pending Verification)";
-
-    // Update in localStorage
+    // 1. Update in shree_sai_online_orders (Admin view)
     const existingOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
     const idx = existingOrders.findIndex(o => o.orderId === currentActiveUpiOrder.orderId);
     if (idx >= 0) {
-        existingOrders[idx].utrNumber = utr;
-        existingOrders[idx].paymentMethod = "Paid Online via PhonePe/GPay";
-        existingOrders[idx].paymentStatus = "Paid (Pending Verification)";
+        existingOrders[idx].paymentMethod = currentActiveUpiOrder.paymentMethod;
+        existingOrders[idx].paymentStatus = "Ordered Placed on UPI";
+        existingOrders[idx].status = "Ordered Placed on UPI";
+        existingOrders[idx].isPaid = true;
+        existingOrders[idx].paidAt = currentActiveUpiOrder.paidAt;
         localStorage.setItem('shree_sai_online_orders', JSON.stringify(existingOrders));
     }
 
-    // Submit payment proof to server
+    // 2. Persist in customer's personal My Orders history (shree_sai_my_orders)
+    try {
+        const myOrders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+        const mIdx = myOrders.findIndex(o => o.orderId === currentActiveUpiOrder.orderId);
+        if (mIdx >= 0) {
+            myOrders[mIdx] = currentActiveUpiOrder;
+        } else {
+            myOrders.unshift(currentActiveUpiOrder);
+        }
+        localStorage.setItem('shree_sai_my_orders', JSON.stringify(myOrders));
+        updateMyOrdersBadge();
+    } catch(e) {}
+
+    // 3. Submit proof to server API
     fetch(`${API_BASE}/api/submit-payment-proof`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             orderId: currentActiveUpiOrder.orderId,
-            utrNumber: utr,
-            paymentApp: "PhonePe / Google Pay"
+            paymentMethod: currentActiveUpiOrder.paymentMethod,
+            paymentStatus: "Ordered Placed on UPI",
+            amount: currentActiveUpiOrder.totalAmount
         })
     }).catch(e => console.log("Payment proof sync error:", e));
 
-    // Hide UPI modal
+    // 4. Hide UPI modal
     const upiModalEl = document.getElementById("upiPaymentModal");
     if (upiModalEl && typeof bootstrap !== 'undefined') {
         const upiModal = bootstrap.Modal.getInstance(upiModalEl);
         if (upiModal) upiModal.hide();
     }
 
-    // Show Success Modal
-    setTimeout(() => {
-        showOrderSuccessModal(currentActiveUpiOrder);
-        showToast(currentLang === 'hi' 
-            ? "ऑनलाइन पेमेंट विवरण सफलतापूर्वक दर्ज हो गया!" 
-            : "Online payment details submitted successfully!");
-    }, 400);
+    // 5. Show Payment Success Celebration Popup Modal
+    const succPopupEl = document.getElementById("paymentSuccessPopupModal");
+    if (succPopupEl && typeof bootstrap !== 'undefined') {
+        const amountEl = document.getElementById("popupSuccessAmount");
+        const orderIdEl = document.getElementById("popupSuccessOrderId");
+        if (amountEl) amountEl.textContent = `₹${(currentActiveUpiOrder.totalAmount || 0).toLocaleString('en-IN')}`;
+        if (orderIdEl) orderIdEl.textContent = currentActiveUpiOrder.orderId;
+
+        const succModal = bootstrap.Modal.getOrCreateInstance(succPopupEl);
+        succModal.show();
+
+        // 6. After 1.3 seconds, hide popup and automatically open the Customer Printable Receipt!
+        setTimeout(() => {
+            succModal.hide();
+            setTimeout(() => {
+                openCustomerReceiptModal(currentActiveUpiOrder);
+            }, 350);
+        }, 1300);
+    } else {
+        openCustomerReceiptModal(currentActiveUpiOrder);
+    }
+}
+
+// Switch payment mode from inside modal (COD or Card)
+function switchPaymentModeInModal(mode) {
+    if (!currentActiveUpiOrder) {
+        const existingOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
+        if (existingOrders.length > 0) currentActiveUpiOrder = existingOrders[0];
+    }
+    if (!currentActiveUpiOrder) return;
+
+    if (mode === 'COD') {
+        currentActiveUpiOrder.paymentMethod = "Cash on Delivery (COD)";
+        currentActiveUpiOrder.paymentStatus = "Order Placed (COD)";
+        showToast(currentLang === 'hi' ? "मोड चुना गया: कैश ऑन डिलीवरी" : "Selected: Cash on Delivery (COD)");
+    } else if (mode === 'CARD') {
+        currentActiveUpiOrder.paymentMethod = "Card / Counter Payment";
+        currentActiveUpiOrder.paymentStatus = "Order Placed (Counter Pay)";
+        showToast(currentLang === 'hi' ? "मोड चुना गया: कार्ड / काउंटर पेमेंट" : "Selected: Card / Counter Payment");
+    }
+
+    // Update local storage
+    const onlineOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
+    const idx = onlineOrders.findIndex(o => o.orderId === currentActiveUpiOrder.orderId);
+    if (idx >= 0) {
+        onlineOrders[idx].paymentMethod = currentActiveUpiOrder.paymentMethod;
+        onlineOrders[idx].paymentStatus = currentActiveUpiOrder.paymentStatus;
+        localStorage.setItem('shree_sai_online_orders', JSON.stringify(onlineOrders));
+    }
+}
+
+// Open Customer Printable Tax Invoice & Receipt Modal
+function openCustomerReceiptModal(order) {
+    if (!order) return;
+    currentActiveReceiptOrder = order;
+
+    // Generate Invoice Number if not present
+    if (!order.invoiceNumber) {
+        const numPart = (order.orderId || '').replace(/[^0-9]/g, '') || Math.floor(100000 + Math.random() * 900000);
+        order.invoiceNumber = `SSM-REC-2026-${numPart}`;
+    }
+
+    // GST Calculation: 18% inclusive
+    const total = Number(order.totalAmount || 0);
+    const taxable = Math.round(total / 1.18);
+    const totalGst = total - taxable;
+    const cgst = Math.round(totalGst / 2);
+    const sgst = totalGst - cgst;
+
+    // Update Header Meta Elements
+    const invEl = document.getElementById("recInvoiceNumber");
+    const ordEl = document.getElementById("recOrderId");
+    const dtEl = document.getElementById("recDateTime");
+    const nameEl = document.getElementById("recCustomerName");
+    const phoneEl = document.getElementById("recCustomerPhone");
+    const addrEl = document.getElementById("recCustomerAddress");
+    const payModeEl = document.getElementById("recPaymentMode");
+    const stampEl = document.getElementById("recStampBadge");
+
+    if (invEl) invEl.textContent = order.invoiceNumber;
+    if (ordEl) ordEl.textContent = order.orderId || '-';
+    if (dtEl) dtEl.textContent = `${order.displayDate || new Date().toLocaleDateString('en-IN')} ${order.displayTime || ''}`;
+    if (nameEl) nameEl.textContent = order.customerName || 'Walk-in Customer';
+    if (phoneEl) phoneEl.textContent = order.customerPhone || '-';
+    if (addrEl) addrEl.textContent = order.deliveryAddress || 'Store Pickup / Jalgaon';
+    if (payModeEl) payModeEl.textContent = order.paymentMethod || 'Paid Online via UPI';
+
+    if (stampEl) {
+        if (order.paymentStatus === 'Ordered Placed on UPI' || (order.paymentMethod && order.paymentMethod.includes('UPI'))) {
+            stampEl.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ORDERED PLACED ON UPI`;
+            stampEl.style.borderColor = "#16a34a";
+            stampEl.style.color = "#16a34a";
+        } else {
+            stampEl.innerHTML = `<i class="fa-solid fa-check me-1"></i> ${escapeHtml(order.paymentStatus || 'ORDER PLACED')}`;
+            stampEl.style.borderColor = "#2563eb";
+            stampEl.style.color = "#2563eb";
+        }
+    }
+
+    // Populate Items Table
+    const tbody = document.getElementById("recItemsTableBody");
+    if (tbody) {
+        const items = (order.items && order.items.length > 0) ? order.items : [{ name: "Electronic Item", qty: 1, price: total }];
+        tbody.innerHTML = items.map((item, idx) => {
+            const qty = Number(item.qty) || 1;
+            const rate = Number(item.price) || 0;
+            const lineTot = qty * rate;
+            const lineTax = Math.round(lineTot / 1.18);
+            const lineGst = lineTot - lineTax;
+            return `
+            <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>
+                    <div class="fw-bold text-dark">${escapeHtml(item.name || 'Item')}</div>
+                    ${item.specs ? `<small class="text-muted">${escapeHtml(item.specs)}</small>` : (item.brand ? `<small class="text-muted">${escapeHtml(item.brand)}</small>` : '')}
+                </td>
+                <td class="text-center fw-bold">${qty}</td>
+                <td class="text-end font-monospace">₹${rate.toLocaleString('en-IN')}</td>
+                <td class="text-end font-monospace">₹${lineTax.toLocaleString('en-IN')}</td>
+                <td class="text-end font-monospace">₹${lineGst.toLocaleString('en-IN')}</td>
+                <td class="text-end font-monospace fw-bold text-dark">₹${lineTot.toLocaleString('en-IN')}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // Update Totals
+    const taxEl = document.getElementById("recTaxableAmount");
+    const cgstEl = document.getElementById("recCgstAmount");
+    const sgstEl = document.getElementById("recSgstAmount");
+    const grandEl = document.getElementById("recGrandTotal");
+
+    if (taxEl) taxEl.textContent = `₹${taxable.toLocaleString('en-IN')}`;
+    if (cgstEl) cgstEl.textContent = `₹${cgst.toLocaleString('en-IN')}`;
+    if (sgstEl) sgstEl.textContent = `₹${sgst.toLocaleString('en-IN')}`;
+    if (grandEl) grandEl.textContent = `₹${total.toLocaleString('en-IN')}`;
+
+    // Show modal
+    const modalEl = document.getElementById("customerReceiptModal");
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
+// Print or Save as PDF Receipt
+function printCustomerReceipt() {
+    window.print();
+}
+
+// Send Customer Receipt details on WhatsApp
+function sendCustomerReceiptWhatsApp() {
+    if (!currentActiveReceiptOrder) return;
+    const order = currentActiveReceiptOrder;
+    const itemsText = (order.items || []).map((i, idx) => `${idx + 1}. *${i.name}* (Qty: ${i.qty || 1}) - ₹${((i.price || 0) * (i.qty || 1)).toLocaleString('en-IN')}`).join('\n');
+    const msg = encodeURIComponent(
+`🧾 *CUSTOMER TAX INVOICE & PAYMENT RECEIPT*
+*SHREE SAI MOBILE & ELECTRONICS*
+Station Road, Jalgaon - 425001 (Maharashtra)
+------------------------------------
+📄 *Invoice No:* ${order.invoiceNumber || 'SSM-' + order.orderId}
+🆔 *Order ID:* ${order.orderId}
+📅 *Date:* ${order.displayDate || new Date().toLocaleDateString('en-IN')} ${order.displayTime || ''}
+👤 *Customer:* ${order.customerName || 'Customer'}
+📞 *Phone:* ${order.customerPhone || '-'}
+📍 *Address:* ${order.deliveryAddress || 'Store Pickup'}
+
+🛒 *Ordered Items:*
+${itemsText}
+
+💰 *Total Paid:* ₹${(order.totalAmount || 0).toLocaleString('en-IN')}
+✅ *Status:* ${order.paymentStatus || 'Ordered Placed on UPI'}
+💳 *Payment Mode:* ${order.paymentMethod || 'Paid Online via UPI'}
+------------------------------------
+🙏 Thank you for shopping with Shree Sai Mobile!
+📞 Shop Owner: Devendra Koli (+91 7972296879)`
+    );
+    window.open(`https://api.whatsapp.com/send?phone=917972296879&text=${msg}`, '_blank');
+}
+
+// Customer "My Orders" History Modal
+function openMyOrdersModal() {
+    renderMyOrdersList();
+    const modalEl = document.getElementById("myOrdersModal");
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
+function renderMyOrdersList() {
+    const container = document.getElementById("myOrdersListContainer");
+    if (!container) return;
+
+    let orders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+    if (orders.length === 0) {
+        const onlineOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
+        if (onlineOrders.length > 0) {
+            orders = onlineOrders;
+            localStorage.setItem('shree_sai_my_orders', JSON.stringify(orders));
+        }
+    }
+
+    if (orders.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="rounded-circle bg-light d-inline-flex p-4 mb-3 text-muted">
+                    <i class="fa-solid fa-box-open fa-3x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">${currentLang === 'hi' ? 'अभी तक कोई ऑर्डर नहीं है' : 'No Orders Yet'}</h5>
+                <p class="text-muted small mb-3">${currentLang === 'hi' ? 'आपने अभी तक कोई सामान ऑर्डर नहीं किया है।' : "You haven't placed any orders yet."}</p>
+                <button type="button" class="btn btn-primary px-4 rounded-pill" data-bs-dismiss="modal">
+                    ${currentLang === 'hi' ? 'शॉपिंग शुरू करें' : 'Start Shopping'}
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = orders.map(order => {
+        const dateStr = order.displayDate ? `${order.displayDate} ${order.displayTime || ''}` : new Date(order.date || Date.now()).toLocaleDateString('en-IN');
+        const statusText = order.paymentStatus || 'Ordered Placed on UPI';
+        const isUpi = statusText.toLowerCase().includes('upi');
+        const badgeClass = isUpi ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle';
+        const badgeIcon = isUpi ? 'fa-circle-check' : 'fa-clock';
+
+        const itemsHtml = (order.items || []).map(item => `
+            <div class="d-flex justify-content-between align-items-center py-1 border-bottom-subtle small">
+                <div>
+                    <span class="fw-semibold text-dark">${escapeHtml(item.name || 'Item')}</span>
+                    <span class="text-muted ms-1">× ${item.qty || 1}</span>
+                </div>
+                <span class="font-monospace fw-bold text-secondary">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="order-history-card p-3 mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2 mb-2 border-bottom">
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-dark font-monospace">${order.orderId}</span>
+                            <span class="badge ${badgeClass} px-2 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                <i class="fa-solid ${badgeIcon} me-1"></i>${escapeHtml(statusText)}
+                            </span>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.74rem;">
+                            <i class="fa-regular fa-calendar me-1"></i>${dateStr}
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block" style="font-size: 0.72rem;">Total Amount</small>
+                        <span class="fw-extrabold text-primary fs-6 font-monospace">₹${(order.totalAmount || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    ${itemsHtml}
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 bg-light p-2 rounded-3">
+                    <div class="small text-muted">
+                        <i class="fa-solid fa-credit-card me-1"></i>
+                        <span>${escapeHtml(order.paymentMethod || 'Paid Online via UPI')}</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-primary fw-bold" onclick="viewPastOrderReceipt('${order.orderId}')">
+                            <i class="fa-solid fa-file-invoice me-1"></i> View / Print Receipt
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="contactOrderSupport('${order.orderId}')">
+                            <i class="fa-brands fa-whatsapp me-1"></i> Support
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewPastOrderReceipt(orderId) {
+    const myOrdersEl = document.getElementById("myOrdersModal");
+    if (myOrdersEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getInstance(myOrdersEl);
+        if (modal) modal.hide();
+    }
+
+    const myOrders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+    let order = myOrders.find(o => o.orderId === orderId);
+    if (!order) {
+        const onlineOrders = JSON.parse(localStorage.getItem('shree_sai_online_orders') || '[]');
+        order = onlineOrders.find(o => o.orderId === orderId);
+    }
+
+    if (order) {
+        setTimeout(() => {
+            openCustomerReceiptModal(order);
+        }, 350);
+    } else {
+        alert("Order details not found!");
+    }
+}
+
+function contactOrderSupport(orderId) {
+    const orders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+    const order = orders.find(o => o.orderId === orderId);
+    const text = encodeURIComponent(`Namaste Shree Sai Mobile, I have a question regarding my order ${orderId}${order ? ` (Total: ₹${order.totalAmount})` : ''}.`);
+    window.open(`https://api.whatsapp.com/send?phone=917972296879&text=${text}`, '_blank');
+}
+
+function updateMyOrdersBadge() {
+    const badge = document.getElementById("myOrdersNavBadge");
+    if (!badge) return;
+    const orders = JSON.parse(localStorage.getItem('shree_sai_my_orders') || '[]');
+    const count = orders.length;
+    badge.textContent = count;
+    badge.style.display = (count > 0) ? 'inline-block' : 'none';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Backward-compatible aliases
+function confirmUpiPaymentSubmission() {
+    completeCustomerPayment();
 }
 
 function sendUpiPaymentProofOnWhatsApp() {
-    if (!currentActiveUpiOrder) return;
-    const utrInput = document.getElementById("upiUtrNumberInput");
-    const utr = utrInput ? utrInput.value.trim() : "";
-    const now = new Date();
-    const dateStr = currentActiveUpiOrder.displayDate || now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timeStr = currentActiveUpiOrder.displayTime || now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-
-    let itemsText = (currentActiveUpiOrder.items || []).map((item, idx) => 
-        `${idx + 1}. *${item.name}* (Qty: ${item.qty})`
-    ).join("\n");
-
-    const msg = encodeURIComponent(
-`*💰 ONLINE PAYMENT RECEIPT: SHREE SAI MOBILE*
-----------------------------------
-📅 *Payment Date & Time:* ${dateStr} at ${timeStr}
-🆔 *Order ID:* ${currentActiveUpiOrder.orderId}
-👤 *Customer Name:* ${currentActiveUpiOrder.customerName}
-📞 *Phone:* ${currentActiveUpiOrder.customerPhone}
-📍 *Delivery Address:* ${currentActiveUpiOrder.deliveryAddress}
-
-📦 *Ordered Items:*
-${itemsText}
-
-💰 *Total Paid:* ₹${currentActiveUpiOrder.totalAmount.toLocaleString('en-IN')}
-💳 *Payment Mode:* PhonePe / Google Pay UPI
-🔢 *12-Digit UTR / Ref No:* ${utr || "Attaching payment screenshot below"}
-----------------------------------
-🔔 I have completed online payment for my order. Please verify and confirm dispatch!`
-    );
-
-    window.open(`https://api.whatsapp.com/send?phone=917972296879&text=${msg}`, '_blank');
+    sendCustomerReceiptWhatsApp();
 }
 
 function copyShopUpiId() {
     const upiId = currentUpiConfig.upi_id || "7972296879@ybl";
     navigator.clipboard.writeText(upiId).then(() => {
-        const btnText = document.getElementById("copyUpiBtnText");
-        if (btnText) {
-            const oldText = btnText.textContent;
-            btnText.textContent = currentLang === 'hi' ? "कॉपी हो गया! ✓" : "Copied! ✓";
-            setTimeout(() => {
-                btnText.textContent = oldText;
-            }, 2000);
-        }
         showToast(currentLang === 'hi' ? "UPI ID कॉपी हो गई!" : "UPI ID copied to clipboard!");
     }).catch(() => {
         showToast(upiId);

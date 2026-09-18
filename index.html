@@ -96,6 +96,13 @@
                     <span class="badge bg-danger rounded-pill cart-count-badge" style="display: none;">0</span>
                 </button>
 
+                <!-- My Orders Trigger Button -->
+                <button class="btn btn-outline-secondary rounded-pill px-2 px-sm-3 py-2 d-flex align-items-center gap-2 position-relative" onclick="openMyOrdersModal()" style="flex-shrink: 0;" title="My Orders / मेरे ऑर्डर्स">
+                    <i class="fa-solid fa-box-archive text-primary"></i>
+                    <span class="d-none d-md-inline fw-semibold" data-i18n="myOrdersNav">My Orders</span>
+                    <span class="badge bg-primary rounded-pill my-orders-badge" id="myOrdersNavBadge" style="display: none;">0</span>
+                </button>
+
             </div>
         </div>
     </header>
@@ -1229,18 +1236,21 @@
     <!-- ==========================================================
          Interactive UPI Online Payment & QR Scanner Modal
          ========================================================== -->
+    <!-- ==========================================================
+         Simplified Online Payment & QR Scanner Modal
+         ========================================================== -->
     <div class="modal fade" id="upiPaymentModal" tabindex="-1" aria-labelledby="upiPaymentModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                <!-- Header with PhonePe & GPay Icons -->
-                <div class="modal-header text-white border-0 py-2 py-md-3 px-3 px-md-4" style="background: linear-gradient(135deg, #5f259f 0%, #1a73e8 100%);">
+                <!-- Header with Clean Gradient & Owner Info -->
+                <div class="modal-header text-white border-0 py-3 px-3 px-md-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fa-solid fa-qrcode fa-lg text-primary"></i>
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-xs" style="width: 38px; height: 38px;">
+                            <i class="fa-solid fa-qrcode fa-lg"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title fw-bold mb-0 text-white" id="upiPaymentModalLabel" data-i18n="upiModalTitle">Online Payment & QR Scanner</h5>
-                            <small class="text-white-50" style="font-size: 0.74rem;" data-i18n="upiModalSubtitle">PhonePe • Google Pay • Paytm • BHIM UPI</small>
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="upiPaymentModalLabel" data-i18n="upiModalTitle">Instant Online Payment & QR Scanner</h5>
+                            <small class="text-white-50" style="font-size: 0.74rem;">Pay safely via PhonePe, Google Pay, Paytm, Card or UPI</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1248,116 +1258,99 @@
 
                 <div class="modal-body p-3 p-md-4">
                     <div class="row g-3 g-md-4 align-items-center">
-                        <!-- LEFT COLUMN: Total Amount + Scanner QR Viewfinder -->
+                        <!-- LEFT COLUMN: Total Amount + High-Res QR Scanner Viewfinder -->
                         <div class="col-12 col-md-5 text-center border-end-md pe-md-4">
                             <!-- Amount Box -->
-                            <div class="p-2 p-md-3 rounded-4 mb-2 border text-center" style="background: #f8fafc;">
-                                <span class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.72rem;" data-i18n="totalPayableLabel">Total Amount to Pay</span>
+                            <div class="p-3 rounded-4 mb-2 border text-center" style="background: #f8fafc;">
+                                <span class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.72rem;" data-i18n="totalPayableLabel">Total Amount to Pay:</span>
                                 <div class="fs-2 fw-extrabold text-primary lh-1 my-1" id="upiPayableAmount">₹0</div>
                                 <div class="small text-muted font-monospace" style="font-size: 0.75rem;" id="upiOrderIdDisplay">Order ID: ORD-000000</div>
                             </div>
 
                             <!-- The Scanner Frame with dynamic QR Code -->
                             <div class="my-2">
-                                <div class="scanner-viewfinder shadow-sm border">
-                                    <!-- 4 Corner Viewfinder Reticles -->
+                                <div class="scanner-viewfinder shadow-sm border mx-auto">
                                     <div class="scanner-corner top-left"></div>
                                     <div class="scanner-corner top-right"></div>
                                     <div class="scanner-corner bottom-left"></div>
                                     <div class="scanner-corner bottom-right"></div>
-
-                                    <!-- Animated Laser Scan Line -->
                                     <div class="scanner-scan-line"></div>
-
-                                    <!-- Dynamic QR Code Image -->
                                     <img id="upiQrCodeImg" src="" alt="UPI Payment QR Code" class="upi-qr-image mx-auto">
                                 </div>
                                 <div class="mt-2 text-muted small fw-semibold" style="font-size: 0.76rem;" data-i18n="scanQrInstruction">
-                                    <i class="fa-solid fa-camera text-primary me-1"></i> Open PhonePe, Google Pay or Paytm &amp; Scan QR to Pay
+                                    <i class="fa-solid fa-camera text-primary me-1"></i> Open PhonePe, Google Pay or Paytm &amp; Scan QR Code to Pay
                                 </div>
                             </div>
                         </div>
 
-                        <!-- RIGHT COLUMN: Verified Merchant, App Buttons, UPI Pill, UTR & Actions -->
+                        <!-- RIGHT COLUMN: Owner / Verified Merchant Name, 1-Tap Apps, Other Modes & Pay Done Button -->
                         <div class="col-12 col-md-7 text-start ps-md-3">
-                            <!-- Shop & Payee Info Bar -->
-                            <div class="d-flex justify-content-between align-items-center bg-light p-2 px-3 rounded-3 mb-2 border text-start">
-                                <div>
-                                    <span class="text-muted small" style="font-size: 0.7rem;" data-i18n="verifiedMerchantLabel">Verified Merchant:</span>
-                                    <div class="fw-bold text-dark small" id="upiPayeeNameDisplay">Devendra Koli (Shree Sai Mobile)</div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
-                                        <i class="fa-solid fa-shield-check me-1"></i> Verified UPI
+                            <!-- Shop & Payee Info Bar (Prominently displayed) -->
+                            <div class="bg-light p-3 rounded-3 mb-3 border text-start">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted small fw-semibold" style="font-size: 0.72rem;" data-i18n="verifiedMerchantLabel">Verified Merchant & Shop Owner:</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-shield-check me-1"></i> Verified Store
                                     </span>
                                 </div>
+                                <div class="fw-bold text-dark fs-6" id="upiPayeeNameDisplay">Devendra Koli – Shree Sai Mobile</div>
+                                <small class="text-muted d-block" style="font-size: 0.74rem;">Main Market, Station Road, Jalgaon | Contact: +91 7972296879</small>
                             </div>
 
                             <!-- Mobile 1-Tap App Payment Buttons (for customers on smartphone) -->
-                            <div class="mb-2">
+                            <div class="mb-3">
                                 <div class="small text-muted mb-1 text-start fw-semibold" style="font-size: 0.76rem;" data-i18n="orPayWithAppsLabel">
                                     <i class="fa-solid fa-mobile-screen-button me-1"></i> Or tap directly to pay on this phone:
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6">
-                                        <button type="button" id="upiBtnPhonePe" class="btn btn-upi-app btn-upi-phonepe w-100 py-1" onclick="payWithUpi('phonepe')">
+                                        <button type="button" id="upiBtnPhonePe" class="btn btn-upi-app btn-upi-phonepe w-100 py-2 fw-semibold" onclick="payWithUpi('phonepe')">
                                             <i class="fa-solid fa-bolt"></i> <span data-i18n="btnPhonePeText">PhonePe</span>
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" id="upiBtnGPay" class="btn btn-upi-app btn-upi-gpay w-100 py-1" onclick="payWithUpi('gpay')">
+                                        <button type="button" id="upiBtnGPay" class="btn btn-upi-app btn-upi-gpay w-100 py-2 fw-semibold" onclick="payWithUpi('gpay')">
                                             <i class="fa-brands fa-google"></i> <span data-i18n="btnGPayText">Google Pay</span>
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" id="upiBtnPaytm" class="btn btn-upi-app btn-upi-paytm w-100 py-1" onclick="payWithUpi('paytm')">
+                                        <button type="button" id="upiBtnPaytm" class="btn btn-upi-app btn-upi-paytm w-100 py-2 fw-semibold" onclick="payWithUpi('paytm')">
                                             <i class="fa-solid fa-wallet"></i> <span data-i18n="btnPaytmText">Paytm</span>
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" id="upiBtnAny" class="btn btn-upi-app btn-upi-other w-100 py-1" onclick="payWithUpi('any')">
+                                        <button type="button" id="upiBtnAny" class="btn btn-upi-app btn-upi-other w-100 py-2 fw-semibold" onclick="payWithUpi('any')">
                                             <i class="fa-solid fa-qrcode"></i> <span data-i18n="btnAnyUpiText">Any UPI App</span>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="mt-1 text-muted small" style="font-size: 0.7rem; line-height: 1.25;">
-                                    <i class="fa-solid fa-circle-info text-primary me-1"></i> 
-                                    <span>मोबाइल फोन में सीधे ऐप खुलेगा। कंप्यूटर पर हैं तो बाएँ दिया गया QR कोड स्कैन करें।</span>
+                            </div>
+
+                            <!-- Other Payment Modes Accordion/Box -->
+                            <div class="p-2 px-3 bg-light rounded-3 border mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small fw-bold text-dark"><i class="fa-solid fa-credit-card text-primary me-1"></i> Other Payment Options:</span>
+                                    <span class="badge bg-secondary-subtle text-secondary small">Available</span>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-50 py-1" onclick="switchPaymentModeInModal('COD')">
+                                        <i class="fa-solid fa-truck-fast me-1"></i> Cash on Delivery
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-50 py-1" onclick="switchPaymentModeInModal('CARD')">
+                                        <i class="fa-solid fa-money-check-dollar me-1"></i> Card / Counter Pay
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Copy UPI ID Pill -->
-                            <div class="upi-copy-pill d-flex justify-content-between align-items-center mb-2 py-1 px-3">
-                                <div class="text-start">
-                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Shop UPI ID:</small>
-                                    <span class="font-monospace fw-bold text-dark small" id="upiIdDisplay">7972296879@ybl</span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" onclick="copyShopUpiId()" style="font-size: 0.72rem;">
-                                    <i class="fa-regular fa-copy me-1"></i> <span id="copyUpiBtnText" data-i18n="copyUpiIdBtn">Copy UPI ID</span>
+                            <!-- Single Primary "Payment Complete • Confirm Order" Action Button -->
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-success btn-lg py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="completeCustomerPayment()">
+                                    <i class="fa-solid fa-circle-check fa-lg"></i>
+                                    <span data-i18n="confirmPaymentDoneBtn">Payment Complete • Confirm Order</span>
                                 </button>
-                            </div>
-
-                            <!-- Step 2: UTR / Reference Number & Confirm Order -->
-                            <div class="p-2 bg-light rounded-3 border text-start mb-2">
-                                <label class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1" style="font-size: 0.76rem;">
-                                    <i class="fa-solid fa-receipt text-success"></i>
-                                    <span data-i18n="step2UtrTitle">Step 2: Enter Transaction Details (After Payment)</span>
-                                </label>
-                                <input type="text" id="upiUtrNumberInput" class="form-control form-control-sm font-monospace mb-1" placeholder="Enter 12-Digit UPI Ref / UTR No..." data-i18n-placeholder="utrPlaceholder" maxlength="22">
-                                <small class="text-muted d-block" style="font-size: 0.68rem; line-height: 1.3;">
-                                    पेमेंट सफल होने के बाद PhonePe / Google Pay में दिखने वाला 12-अंकों का <strong>UTR / UPI Ref No.</strong> यहाँ डालें।
+                                <small class="text-muted text-center mt-2" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-shield-halved text-success me-1"></i> 100% Secure &amp; Instant Verification
                                 </small>
-                            </div>
-
-                            <!-- Final Action Buttons -->
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-success py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="confirmUpiPaymentSubmission()">
-                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="confirmUpiOrderBtn">I Have Paid • Confirm Order</span>
-                                </button>
-
-                                <button type="button" class="btn btn-outline-success py-1 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-2" onclick="sendUpiPaymentProofOnWhatsApp()" style="font-size: 0.85rem;">
-                                    <i class="fa-brands fa-whatsapp fa-lg"></i> <span data-i18n="sendReceiptWhatsappBtn">Send Payment Receipt on WhatsApp</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1365,6 +1358,200 @@
             </div>
         </div>
     </div>
+
+    <!-- ==========================================================
+         Payment Success Celebration Popup Modal
+         ========================================================== -->
+    <div class="modal fade" id="paymentSuccessPopupModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg rounded-4 text-center p-4">
+                <div class="my-2">
+                    <div class="rounded-circle bg-success-subtle text-success mx-auto d-flex align-items-center justify-content-center shadow-sm" style="width: 76px; height: 76px;">
+                        <i class="fa-solid fa-circle-check fa-3x"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-1" data-i18n="paymentSuccessTitle">Payment Successful! 🎉</h4>
+                <div class="text-success fw-bold fs-3 my-1" id="popupSuccessAmount">₹0</div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mb-2" id="popupSuccessOrderId">ORD-000000</span>
+                <p class="text-muted small mb-3">
+                    आपका भुगतान सफलतापूर्वक प्राप्त हो गया है! आपकी पक्की टैक्स इनवॉइस रसीद तैयार हो रही है...
+                </p>
+                <div class="d-flex align-items-center justify-content-center gap-2 text-primary small">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="fw-semibold">Opening your printable receipt...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         Official Customer Printable Tax Invoice & Receipt Modal
+         ========================================================== -->
+    <div class="modal fade" id="customerReceiptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom no-print px-4 py-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar text-success fa-xl"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0">Customer Tax Invoice &amp; Payment Receipt</h5>
+                            <small class="text-muted">Download, print or view your official receipt</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 p-md-4" id="customerReceiptModalBody">
+                    <div id="customerReceiptPrintArea" class="bg-white p-3 p-md-4 border rounded-3 font-monospace">
+                        <!-- Shop Header -->
+                        <div class="text-center pb-3 border-bottom mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="text-start">
+                                    <span class="receipt-stamp-paid" id="recStampBadge">
+                                        <i class="fa-solid fa-circle-check me-1"></i> ORDERED PLACED ON UPI
+                                    </span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-light text-dark border">ORIGINAL TAX INVOICE</span>
+                                </div>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-1 font-sans-serif" style="letter-spacing: 0.5px;">SHREE SAI MOBILE &amp; ELECTRONICS</h4>
+                            <div class="small text-muted mb-1">Smartphones • 4K TVs • Washing Machines • Fast Chargers &amp; Accessories</div>
+                            <div class="small text-dark fw-semibold">Main Market, Station Road, Jalgaon - 425001 (Maharashtra)</div>
+                            <div class="small text-dark"><strong>Proprietor:</strong> Devendra Koli | <strong>Mo:</strong> +91 7972296879</div>
+                            <div class="small mt-1">
+                                <span class="badge bg-light text-dark border">GSTIN: 27AABCS1429B1Z8</span>
+                                <span class="badge bg-light text-dark border ms-1">State Code: 27 (Maharashtra)</span>
+                            </div>
+                        </div>
+
+                        <!-- Meta & Customer Details -->
+                        <div class="row g-2 mb-3 pb-2 border-bottom small">
+                            <div class="col-6">
+                                <div><strong>Invoice / Receipt No:</strong> <span id="recInvoiceNumber" class="text-primary fw-bold">SSM-REC-2026-1001</span></div>
+                                <div><strong>Order ID:</strong> <span id="recOrderId" class="fw-bold">ORD-270736</span></div>
+                                <div><strong>Date &amp; Time:</strong> <span id="recDateTime">-</span></div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <div><strong>Customer Name:</strong> <span id="recCustomerName" class="fw-bold">-</span></div>
+                                <div><strong>Mobile No:</strong> <span id="recCustomerPhone">-</span></div>
+                                <div><strong>Delivery Address:</strong> <span id="recCustomerAddress" class="text-truncate d-inline-block" style="max-width: 220px;">-</span></div>
+                                <div><strong>Payment Mode:</strong> <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold" id="recPaymentMode">Paid Online via UPI</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th style="width: 35px;">#</th>
+                                        <th>Item Description</th>
+                                        <th style="width: 50px;">Qty</th>
+                                        <th class="text-end">Rate (₹)</th>
+                                        <th class="text-end">Taxable (₹)</th>
+                                        <th class="text-end">GST (18%)</th>
+                                        <th class="text-end">Total (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recItemsTableBody">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Totals & Terms -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-7">
+                                <div class="p-2 bg-light rounded border small">
+                                    <strong>Terms &amp; Warranty Declaration:</strong>
+                                    <ul class="mb-0 ps-3 mt-1" style="font-size: 0.74rem;">
+                                        <li>1-Year Official Manufacturer Brand Warranty on all electronics.</li>
+                                        <li>Same-day dispatch for verified orders.</li>
+                                        <li>Direct shop owner support: Devendra Koli (+91 7972296879).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Taxable Amount:</span>
+                                    <span id="recTaxableAmount">₹0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>CGST (9%):</span>
+                                    <span id="recCgstAmount">₹0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>SGST (9%):</span>
+                                    <span id="recSgstAmount">₹0.00</span>
+                                </div>
+                                <hr class="my-1">
+                                <div class="d-flex justify-content-between fw-bold fs-6 text-dark">
+                                    <span>Total Paid:</span>
+                                    <span id="recGrandTotal" class="text-success fs-5">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Sign & Greeting -->
+                        <div class="d-flex justify-content-between align-items-end pt-2 border-top small">
+                            <div>
+                                <div class="text-muted" style="font-size: 0.74rem;">Payment Reference: UPI Auto-Verified</div>
+                                <strong>Thank you for choosing Shree Sai Mobile! Visit Again! 🙏</strong>
+                            </div>
+                            <div class="text-center">
+                                <div class="mb-2">________________________</div>
+                                <strong>Authorized Signatory</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top no-print px-4 py-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-success fw-bold" onclick="sendCustomerReceiptWhatsApp()">
+                            <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp Receipt
+                        </button>
+                        <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="printCustomerReceipt()">
+                            <i class="fa-solid fa-print me-1"></i> Download / Print Receipt (PDF)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         Customer "My Orders" History Modal
+         ========================================================== -->
+    <div class="modal fade" id="myOrdersModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-xs" style="width: 36px; height: 36px;">
+                            <i class="fa-solid fa-box-archive"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" data-i18n="myOrdersTitle">My Orders &amp; Purchase History</h5>
+                            <small class="text-muted" data-i18n="myOrdersSubtitle">View all past orders placed online via UPI / COD</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 p-md-4">
+                    <div id="myOrdersListContainer">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-2">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Customer Profile / About Details Modal -->
     <div class="modal fade" id="customerProfileModal" tabindex="-1" aria-labelledby="customerProfileModalLabel" aria-hidden="true">

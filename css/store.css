@@ -808,3 +808,88 @@ body {
     transform: translateX(3px);
 }
 
+/* ==========================================================
+   Customer Printable Receipt & My Orders Styles
+   ========================================================== */
+.order-history-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+.order-history-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    border-color: #3b82f6;
+}
+
+.receipt-stamp-paid {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 2px solid #16a34a;
+    border-radius: 6px;
+    color: #16a34a;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    transform: rotate(-3deg);
+}
+
+@media print {
+    body, html {
+        visibility: hidden !important;
+        overflow: visible !important;
+        height: auto !important;
+        background: #ffffff !important;
+    }
+    body * {
+        visibility: hidden !important;
+    }
+    .modal, .modal-dialog, .modal-content, .modal-body {
+        position: static !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+        transform: none !important;
+    }
+    #customerReceiptModal {
+        display: block !important;
+        position: static !important;
+    }
+    #customerReceiptPrintArea,
+    #customerReceiptPrintArea * {
+        visibility: visible !important;
+    }
+    #customerReceiptPrintArea {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .no-print,
+    .modal-backdrop,
+    .modal-header,
+    .modal-footer,
+    .btn,
+    .btn-close,
+    .store-header,
+    .store-topbar,
+    .category-scroll-bar,
+    footer,
+    .whatsapp-float-btn {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+
