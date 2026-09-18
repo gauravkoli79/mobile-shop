@@ -1,0 +1,430 @@
+[
+  {
+    "orderId": "ORD-936608",
+    "date": "2026-09-17T06:06:47.430Z",
+    "displayDate": "17 Sept 2026",
+    "displayTime": "11:36 am",
+    "customerName": "Om",
+    "customerPhone": "9226103801",
+    "deliveryAddress": "Jalgaon",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "Paid Online via PhonePe / Google Pay",
+    "status": "Replacement Requested",
+    "isNew": true,
+    "paymentStatus": "Paid (Pending Verification)",
+    "utrNumber": "",
+    "replaceRequestedAt": "18 Sep 2026, 01:37 PM",
+    "replaceReason": "iphone"
+  },
+  {
+    "orderId": "ORD-835338",
+    "date": "2026-09-16T12:17:19.113Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "05:47 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "a1",
+        "name": "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+        "price": 26990,
+        "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 26990,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-343759",
+    "date": "2026-09-16T11:54:22.350Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "05:24 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "wm2",
+        "name": "Samsung 7 Kg Fully-Automatic Top Load Washing Machine",
+        "price": 15490,
+        "image": "https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 15490,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-788097",
+    "date": "2026-09-16T11:38:14.165Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "05:08 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgaon",
+    "items": [
+      {
+        "id": "tv1",
+        "name": "Sony Bravia 55-Inch 4K Ultra HD Smart Google TV",
+        "price": 58990,
+        "image": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 58990,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-796809",
+    "date": "2026-09-16T11:24:17.976Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:54 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m2",
+        "name": "Apple iPhone 15 Pro",
+        "price": 124900,
+        "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 124900,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-422669",
+    "date": "2026-09-16T10:49:35.856Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:19 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m4",
+        "name": "Vivo V30 5G",
+        "price": 32999,
+        "image": "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 32999,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Cancelled",
+    "isNew": true,
+    "cancelledAt": "16 Sep 2026, 04:55 PM",
+    "cancelReason": "Ordered by mistake"
+  },
+  {
+    "orderId": "ORD-218670",
+    "date": "2026-09-16T10:47:35.049Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:17 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m2",
+        "name": "Apple iPhone 15 Pro",
+        "price": 124900,
+        "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 124900,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Cancelled",
+    "isNew": true,
+    "cancelledAt": "16 Sep 2026, 04:55 PM",
+    "cancelReason": "Ordered by mistake"
+  },
+  {
+    "orderId": "ORD-252338",
+    "date": "2026-09-16T10:44:45.672Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:14 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m3",
+        "name": "Redmi Note 13 5G",
+        "price": 16999,
+        "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 16999,
+    "paymentMethod": "WhatsApp Order",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-133882",
+    "date": "2026-09-16T10:44:37.851Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:14 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m2",
+        "name": "Apple iPhone 15 Pro",
+        "price": 124900,
+        "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 124900,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-969667",
+    "date": "2026-09-16T10:38:57.493Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:08 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "Paid Online via PhonePe / Google Pay",
+    "status": "Pending",
+    "isNew": true,
+    "paymentStatus": "Paid (Pending Verification)",
+    "utrNumber": ""
+  },
+  {
+    "orderId": "ORD-551811",
+    "date": "2026-09-16T10:36:22.791Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:06 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-341525",
+    "date": "2026-09-16T10:35:56.181Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "04:05 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-339171",
+    "date": "2026-09-16T10:29:05.464Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "03:59 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-794228",
+    "date": "2026-09-16T10:28:37.966Z",
+    "displayDate": "16 Sept 2026",
+    "displayTime": "03:58 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-590147",
+    "date": "2026-09-14T18:27:02.203Z",
+    "displayDate": "14 Sept 2026",
+    "displayTime": "11:57 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "c3",
+        "name": "9D Curved Edge Tempered Glass + Matte Case Combo",
+        "price": 299,
+        "image": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 299,
+    "paymentMethod": "Paid Online via PhonePe / Google Pay",
+    "status": "Pending",
+    "isNew": true,
+    "paymentStatus": "Paid (Pending Verification)",
+    "utrNumber": ""
+  },
+  {
+    "orderId": "ORD-800624",
+    "date": "2026-09-14T18:18:36.758Z",
+    "displayDate": "14 Sept 2026",
+    "displayTime": "11:48 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m3",
+        "name": "Redmi Note 13 5G",
+        "price": 16999,
+        "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 16999,
+    "paymentMethod": "Paid Online via PhonePe / Google Pay",
+    "status": "Pending",
+    "isNew": true,
+    "paymentStatus": "Paid (Pending Verification)",
+    "utrNumber": ""
+  },
+  {
+    "orderId": "ORD-828614",
+    "date": "2026-09-14T18:17:06.821Z",
+    "displayDate": "14 Sept 2026",
+    "displayTime": "11:47 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m4",
+        "name": "Vivo V30 5G",
+        "price": 32999,
+        "image": "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 32999,
+    "paymentMethod": "PhonePe / GPay UPI (Online)",
+    "status": "Pending",
+    "isNew": true
+  },
+  {
+    "orderId": "ORD-102086",
+    "date": "2026-09-14T18:15:52.905Z",
+    "displayDate": "14 Sept 2026",
+    "displayTime": "11:45 pm",
+    "customerName": "Gaurav Koli",
+    "customerPhone": "7972296879",
+    "deliveryAddress": "jalgoan",
+    "items": [
+      {
+        "id": "m3",
+        "name": "Redmi Note 13 5G",
+        "price": 16999,
+        "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&auto=format&fit=crop&q=60",
+        "qty": 1
+      }
+    ],
+    "itemCount": 1,
+    "totalAmount": 16999,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "isNew": true
+  }
+]

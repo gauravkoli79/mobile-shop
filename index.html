@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shree Sai Mobile & Electronics | Online Store</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom Storefront CSS -->
+    <link rel="stylesheet" href="css/store.css">
+</head>
+<body>
+
+    <!-- Simulated Mobile SMS Push Notification Toast -->
+    <div id="smsNotificationBanner" class="sms-push-banner shadow-lg rounded-4 d-none">
+        <div class="d-flex align-items-center gap-3">
+            <div class="sms-icon-bubble bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
+                <i class="fa-solid fa-comment-sms fa-lg"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-dark small"><i class="fa-solid fa-shield-check text-success me-1"></i> Shree Sai Mobile</strong>
+                    <span class="badge bg-light text-muted fw-normal" style="font-size: 0.68rem;">Just now</span>
+                </div>
+                <div class="sms-text mt-1 text-dark" id="smsBannerText" style="font-size: 0.85rem;">
+                    Your OTP for mobile verification is <span class="badge bg-primary fs-6 px-2 py-1 font-monospace" id="smsOtpCodeBadge">0000</span>.
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-sm" onclick="dismissSmsBanner()"></button>
+        </div>
+    </div>
+
+    <!-- 1. Top Location & Quick Admin Bar -->
+    <div class="store-topbar">
+        <a href="javascript:void(0)" class="location-chip" onclick="alert('Delivery available across India with Same-Day Local Delivery!')">
+            <i class="fa-solid fa-location-dot"></i>
+            <span data-i18n="deliverToLabel">Deliver to: Select delivery location</span>
+            <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Customer Account / Profile / Logout Dropdown -->
+            <div id="userAccountTopChip">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1" style="font-size: 0.8rem;" onclick="openCustomerAuthModal()">
+                    <i class="fa-regular fa-circle-user"></i>
+                    <span data-i18n="accountGuest">My Account</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Sticky App Header with Search & Cart -->
+    <header class="store-header">
+        <div class="container-fluid px-2">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                
+                <!-- Store Brand Logo -->
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="d-none d-sm-block">
+                        <div class="fw-bold text-dark lh-1" style="font-size: 0.95rem;">Shree Sai</div>
+                        <small class="text-primary fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.05em;">MOBILES & ELECTRONICS</small>
+                    </div>
+                </div>
+
+                <!-- Big Pill Search Bar -->
+                <div class="search-container flex-grow-1 position-relative">
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside" onclick="triggerStoreSearch()" title="Search"></i>
+                    <input type="text" id="storeSearchInput" class="search-input-pill pe-5" placeholder="Search Mobiles, Smart TVs, Washing Machines, Headphones..." data-i18n-placeholder="storeSearchPlaceholder">
+                    <button type="button" class="search-clear-btn d-none" id="storeSearchClearBtn" onclick="clearStoreSearch()" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Direct Sticky Header Language Switcher (Visible on all screens) -->
+                <div class="btn-group border rounded-pill overflow-hidden shadow-xs bg-light" role="group" style="flex-shrink: 0;">
+                    <button type="button" class="btn btn-sm py-1 px-2 fw-bold" id="btnHeaderLangEn" onclick="setStoreLanguage('en')" style="font-size: 0.76rem;">
+                        EN
+                    </button>
+                    <button type="button" class="btn btn-sm py-1 px-2 fw-bold" id="btnHeaderLangHi" onclick="setStoreLanguage('hi')" style="font-size: 0.76rem;">
+                        हिन्दी
+                    </button>
+                </div>
+
+                <!-- Desktop / Tablet Cart Trigger -->
+                <button class="btn btn-outline-primary rounded-pill px-3 py-2 d-flex align-items-center gap-2 position-relative" onclick="openCartDrawer()" style="flex-shrink: 0;">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="d-none d-md-inline fw-bold" data-i18n="cartNav">Cart</span>
+                    <span class="badge bg-danger rounded-pill cart-count-badge" style="display: none;">0</span>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. Category Horizontal Scroll Tabs -->
+    <nav class="category-scroll-bar">
+        <button class="cat-tab active" data-category="all">
+            <i class="fa-solid fa-fire text-danger"></i> <span data-i18n="tabForYou">For You</span>
+        </button>
+        <button class="cat-tab" data-category="mobiles">
+            <i class="fa-solid fa-mobile-screen text-primary"></i> <span data-i18n="tabMobiles">Mobiles</span>
+        </button>
+        <button class="cat-tab" data-category="tvs">
+            <i class="fa-solid fa-tv text-purple"></i> <span data-i18n="tabSmartTvs">Smart TVs</span>
+        </button>
+        <button class="cat-tab" data-category="washing_machines">
+            <i class="fa-solid fa-soap text-info"></i> <span data-i18n="tabWashingMachines">Washing Machines</span>
+        </button>
+        <button class="cat-tab" data-category="audio">
+            <i class="fa-solid fa-headphones text-success"></i> <span data-i18n="tabAudio">Audio & Earbuds</span>
+        </button>
+        <button class="cat-tab" data-category="chargers">
+            <i class="fa-solid fa-bolt text-warning"></i> <span data-i18n="tabChargers">Fast Chargers</span>
+        </button>
+        <button class="cat-tab" data-category="accessories">
+            <i class="fa-solid fa-shield text-secondary"></i> <span data-i18n="tabAccessories">Accessories</span>
+        </button>
+        <button class="cat-tab btn-all-cats bg-primary-subtle text-primary border-primary border-opacity-25 fw-bold" onclick="openCategoriesModal()" title="View all product categories">
+            <i class="fa-solid fa-layer-group me-1"></i> <span data-i18n="allCategoriesBtn">All Categories ▾</span>
+        </button>
+    </nav>
+
+    <!-- Main Storefront Container -->
+    <main class="container-fluid px-3 py-2">
+
+        <!-- 4. Hero Promo Banner Carousel (5 Dynamic Slides with 2-Second Auto-Slide & Controls) -->
+        <div id="heroPromoCarousel" class="carousel slide position-relative mb-3" data-bs-ride="carousel" data-bs-interval="2000" data-bs-pause="hover">
+            <!-- Carousel Indicators (Dots) -->
+            <div class="carousel-indicators carousel-indicators-custom">
+                <button type="button" data-bs-target="#heroPromoCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroPromoCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroPromoCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                <button type="button" data-bs-target="#heroPromoCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                <button type="button" data-bs-target="#heroPromoCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
+            </div>
+
+            <!-- Carousel Slides -->
+            <div class="carousel-inner rounded-4 shadow-sm overflow-hidden">
+                
+                <!-- Slide 1: Galaxy S24 Ultra & Nova 5G -->
+                <div class="carousel-item active">
+                    <div class="promo-hero-card m-0" style="background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #eff6ff 100%); min-height: 220px;">
+                        <div class="row align-items-center g-3">
+                            <div class="col-7 col-md-8">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-danger text-white px-2 py-1 fw-bold"><i class="fa-solid fa-fire me-1"></i><span data-i18n="slide1Badge">FESTIVE DEAL</span></span>
+                                    <div class="hero-rating-badge mb-0">
+                                        <span>4.8</span> <i class="fa-solid fa-star" style="font-size: 0.65rem;"></i>
+                                    </div>
+                                </div>
+                                <h2 class="fw-extrabold text-dark mb-1" style="font-size: 1.45rem;" data-i18n="slide1Title">Samsung S24 Ultra & Nova 5G</h2>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="text-primary fw-extrabold" style="font-size: 1.7rem;" data-i18n="slide1Price">From ₹13,999</span>
+                                    <span class="text-muted text-decoration-line-through small">₹19,999</span>
+                                    <span class="badge bg-success">30% OFF</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2 d-none d-sm-flex">
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-microchip text-primary me-1"></i>Snapdragon 8 Gen 3</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-camera text-danger me-1"></i>200MP AI Cam</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-battery-full text-success me-1"></i>6000mAh</span>
+                                </div>
+                                <div class="emi-pill mt-0"><i class="fa-solid fa-credit-card me-1 text-primary"></i><span data-i18n="slide1Emi">Pay Only ₹2,333/m No Cost EMI</span></div>
+                            </div>
+                            <div class="col-5 col-md-4 text-center">
+                                <div class="hero-img-box">
+                                    <img src="https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80" alt="Flagship Smartphone" class="img-fluid rounded-4 shadow-sm" style="max-height: 190px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Apple iPhone 15 Pro Titanium -->
+                <div class="carousel-item">
+                    <div class="promo-hero-card m-0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); min-height: 220px; color: #ffffff;">
+                        <div class="row align-items-center g-3">
+                            <div class="col-7 col-md-8">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-warning text-dark px-2 py-1 fw-bold"><i class="fa-brands fa-apple me-1"></i><span data-i18n="slide2Badge">PRO SERIES</span></span>
+                                    <span class="badge bg-dark border border-secondary text-light"><i class="fa-solid fa-star text-warning me-1"></i>4.9 ★ Top Rated</span>
+                                </div>
+                                <h2 class="fw-extrabold text-white mb-1" style="font-size: 1.45rem;" data-i18n="slide2Title">Apple iPhone 15 Pro</h2>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="text-warning fw-extrabold" style="font-size: 1.7rem;" data-i18n="slide2Price">From ₹1,24,900</span>
+                                    <span class="badge bg-light text-dark">Instant ₹6,000 Off</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2 d-none d-sm-flex">
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-shield text-warning me-1"></i>Grade 5 Titanium</span>
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-bolt text-info me-1"></i>A17 Pro Chip</span>
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-camera text-primary me-1"></i>48MP Pro</span>
+                                </div>
+                                <div class="emi-pill mt-0 bg-dark text-white border-secondary"><i class="fa-solid fa-credit-card me-1 text-warning"></i><span data-i18n="slide2Emi">No Cost EMI from ₹5,204/m</span></div>
+                            </div>
+                            <div class="col-5 col-md-4 text-center">
+                                <div class="hero-img-box">
+                                    <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80" alt="iPhone 15 Pro Titanium" class="img-fluid rounded-4 shadow-sm" style="max-height: 190px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: 4K Smart Google TVs (Cinema at Home) -->
+                <div class="carousel-item">
+                    <div class="promo-hero-card m-0" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); min-height: 220px; color: #ffffff;">
+                        <div class="row align-items-center g-3">
+                            <div class="col-7 col-md-8">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-info text-dark px-2 py-1 fw-bold"><i class="fa-solid fa-tv me-1"></i><span data-i18n="slide3Badge">CINEMA EXPERIENCE</span></span>
+                                    <span class="badge bg-dark border border-secondary text-light"><i class="fa-solid fa-star text-warning me-1"></i>4.8 ★</span>
+                                </div>
+                                <h2 class="fw-extrabold text-white mb-1" style="font-size: 1.45rem;" data-i18n="slide3Title">Sony Bravia & Samsung 4K TV</h2>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="text-warning fw-extrabold" style="font-size: 1.7rem;" data-i18n="slide3Price">From ₹24,990</span>
+                                    <span class="badge bg-danger">Up to 45% OFF</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2 d-none d-sm-flex">
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-volume-high text-info me-1"></i>Dolby Atmos</span>
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-expand text-warning me-1"></i>55" Bezel-less</span>
+                                    <span class="badge bg-dark bg-opacity-75 text-light border border-secondary"><i class="fa-solid fa-microphone text-success me-1"></i>Google TV</span>
+                                </div>
+                                <div class="emi-pill mt-0 bg-dark text-white border-secondary"><i class="fa-solid fa-truck me-1 text-info"></i><span data-i18n="slide3Emi">Free Installation + ₹1,250/m EMI</span></div>
+                            </div>
+                            <div class="col-5 col-md-4 text-center">
+                                <div class="hero-img-box">
+                                    <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&auto=format&fit=crop&q=80" alt="4K Smart Google TV" class="img-fluid rounded-4 shadow-sm" style="max-height: 190px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: 5-Star Inverter Washing Machines -->
+                <div class="carousel-item">
+                    <div class="promo-hero-card m-0" style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%); min-height: 220px;">
+                        <div class="row align-items-center g-3">
+                            <div class="col-7 col-md-8">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge text-white px-2 py-1 fw-bold" style="background: #0d9488;"><i class="fa-solid fa-soap me-1"></i><span data-i18n="slide4Badge">HOME APPLIANCES</span></span>
+                                    <div class="hero-rating-badge mb-0">
+                                        <span>4.7</span> <i class="fa-solid fa-star" style="font-size: 0.65rem;"></i>
+                                    </div>
+                                </div>
+                                <h2 class="fw-extrabold text-dark mb-1" style="font-size: 1.45rem;" data-i18n="slide4Title">LG & Samsung Inverter Washers</h2>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="fw-extrabold" style="color: #0f766e; font-size: 1.7rem;" data-i18n="slide4Price">Starts @ ₹10,990</span>
+                                    <span class="badge bg-success">Flat 30% OFF</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2 d-none d-sm-flex">
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-wind text-info me-1"></i>Steam Wash</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-star text-warning me-1"></i>5-Star Energy Saver</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-certificate text-success me-1"></i>10-Yr Motor Warranty</span>
+                                </div>
+                                <div class="emi-pill mt-0"><i class="fa-solid fa-truck-fast me-1 text-success"></i><span data-i18n="slide4Emi">Free Local Delivery & Free Demo</span></div>
+                            </div>
+                            <div class="col-5 col-md-4 text-center">
+                                <div class="hero-img-box">
+                                    <img src="https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=800&auto=format&fit=crop&q=80" alt="Inverter Washing Machine" class="img-fluid rounded-4 shadow-sm" style="max-height: 190px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5: Audio & Fast Chargers Mega Sale -->
+                <div class="carousel-item">
+                    <div class="promo-hero-card m-0" style="background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%); min-height: 220px;">
+                        <div class="row align-items-center g-3">
+                            <div class="col-7 col-md-8">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-danger text-white px-2 py-1 fw-bold"><i class="fa-solid fa-headphones me-1"></i><span data-i18n="slide5Badge">AUDIO BONANZA</span></span>
+                                    <div class="hero-rating-badge mb-0">
+                                        <span>4.9</span> <i class="fa-solid fa-star" style="font-size: 0.65rem;"></i>
+                                    </div>
+                                </div>
+                                <h2 class="fw-extrabold text-dark mb-1" style="font-size: 1.45rem;" data-i18n="slide5Title">Sony ANC & 65W GaN Chargers</h2>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="text-danger fw-extrabold" style="font-size: 1.7rem;" data-i18n="slide5Price">Flat 50% - 60% OFF</span>
+                                    <span class="text-muted small">Starts @ ₹299</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2 d-none d-sm-flex">
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-ear-listen text-primary me-1"></i>Active Noise Cancelling</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-bolt text-warning me-1"></i>65W Dual Type-C</span>
+                                    <span class="badge bg-white text-dark border"><i class="fa-solid fa-clock text-success me-1"></i>40-Hr Playtime</span>
+                                </div>
+                                <div class="emi-pill mt-0"><i class="fa-solid fa-shield-check me-1 text-primary"></i><span data-i18n="slide5Emi">100% Original with Brand Warranty</span></div>
+                            </div>
+                            <div class="col-5 col-md-4 text-center">
+                                <div class="hero-img-box">
+                                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80" alt="Sony Headphones and Chargers" class="img-fluid rounded-4 shadow-sm" style="max-height: 190px; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Controls (Prev / Next Buttons) -->
+            <button class="carousel-control-prev carousel-ctrl-btn ms-2" type="button" data-bs-target="#heroPromoCarousel" data-bs-slide="prev" aria-label="Previous">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="carousel-control-next carousel-ctrl-btn me-2" type="button" data-bs-target="#heroPromoCarousel" data-bs-slide="next" aria-label="Next">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- 5. Brand Grid Icons (As in Screenshot: iPhone, Vivo, Realme, OPPO, Redmi, Samsung, etc.) -->
+        <div class="brand-grid-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark" data-i18n="shopTopBrands">Shop Top Brands</h6>
+                <a href="javascript:void(0)" onclick="resetFilters()" class="text-primary text-decoration-none fw-semibold small" data-i18n="viewAllBrands">View All</a>
+            </div>
+
+            <div class="row row-cols-4 row-cols-sm-6 row-cols-md-8 g-2 text-center">
+                <!-- Apple -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Apple">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-brands fa-apple fa-2x text-dark"></i>
+                        </div>
+                        <span class="brand-label">iPhone</span>
+                    </a>
+                </div>
+
+                <!-- Vivo -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Vivo">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-v fa-2x text-primary"></i>
+                        </div>
+                        <span class="brand-label">vivo</span>
+                    </a>
+                </div>
+
+                <!-- Realme -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Realme">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-r fa-2x text-warning"></i>
+                        </div>
+                        <span class="brand-label">realme</span>
+                    </a>
+                </div>
+
+                <!-- OnePlus -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="OnePlus">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-mobile-button fa-2x text-success"></i>
+                        </div>
+                        <span class="brand-label">OnePlus</span>
+                    </a>
+                </div>
+
+                <!-- Redmi -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Redmi">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-bolt fa-2x text-danger"></i>
+                        </div>
+                        <span class="brand-label">Redmi</span>
+                    </a>
+                </div>
+
+                <!-- Samsung -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Samsung">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-s fa-2x text-primary"></i>
+                        </div>
+                        <span class="brand-label">Samsung</span>
+                    </a>
+                </div>
+
+                <!-- Sony -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="Sony">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-tv fa-2x text-dark"></i>
+                        </div>
+                        <span class="brand-label">Sony</span>
+                    </a>
+                </div>
+
+                <!-- LG -->
+                <div class="col">
+                    <a href="javascript:void(0)" class="brand-circle-item" data-brand="LG">
+                        <div class="brand-icon-wrapper">
+                            <i class="fa-solid fa-soap fa-2x text-danger"></i>
+                        </div>
+                        <span class="brand-label">LG</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 7. Product Catalog Grid -->
+        <div class="mb-3" id="productsGridSection">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0 text-dark" id="productsGridHeaderTitle" data-i18n="featuredTitle">Featured Products & Appliances</h5>
+                <span class="text-muted small" id="productsGridCount">18 Items Available</span>
+            </div>
+
+            <!-- Active Filter Chip Banner (Shown when a category or brand is selected) -->
+            <div id="activeFilterBadgeBanner" class="alert alert-primary py-2 px-3 mb-3 d-flex align-items-center justify-content-between rounded-3 border-primary-subtle d-none">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-filter text-primary"></i>
+                    <span class="small fw-semibold" id="activeFilterText">Filtered by: Mobiles</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill small" onclick="resetFilters()">
+                    <i class="fa-solid fa-xmark me-1"></i> Show All Products
+                </button>
+            </div>
+
+            <!-- Products injected by store.js -->
+            <div class="row g-3" id="productsGrid"></div>
+        </div>
+
+    </main>
+
+    <!-- ==========================================================
+         8. Modern E-Commerce Storefront Footer with Full Owner Information
+         ========================================================== -->
+    <footer class="store-footer bg-dark text-white pt-5 pb-4 mt-5">
+        <!-- Top Trust Badges Bar -->
+        <div class="container-fluid px-3 px-md-5 mb-5">
+            <div class="row g-3 g-md-4">
+                <div class="col-6 col-md-3">
+                    <div class="footer-trust-card d-flex align-items-center gap-3 p-3 rounded-4">
+                        <div class="trust-icon-box bg-primary text-white d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-shield-check fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small" data-i18n="trust1Title">100% Genuine Mobiles</div>
+                            <small class="text-white-50" style="font-size: 0.75rem;" data-i18n="trust1Desc">Authorized Brand Warranty</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="footer-trust-card d-flex align-items-center gap-3 p-3 rounded-4">
+                        <div class="trust-icon-box bg-success text-white d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-truck-fast fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small" data-i18n="trust2Title">Fast Local Delivery</div>
+                            <small class="text-white-50" style="font-size: 0.75rem;" data-i18n="trust2Desc">Same-day delivery across town</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="footer-trust-card d-flex align-items-center gap-3 p-3 rounded-4">
+                        <div class="trust-icon-box bg-warning text-dark d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-screwdriver-wrench fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small" data-i18n="trust3Title">Expert Mobile Repair</div>
+                            <small class="text-white-50" style="font-size: 0.75rem;" data-i18n="trust3Desc">Screen & Battery Replacement</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="footer-trust-card d-flex align-items-center gap-3 p-3 rounded-4">
+                        <div class="trust-icon-box bg-info text-white d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-indian-rupee-sign fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small" data-i18n="trust4Title">Easy Pay on Delivery</div>
+                            <small class="text-white-50" style="font-size: 0.75rem;" data-i18n="trust4Desc">Cash, UPI, GPay, PhonePe</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Footer Columns -->
+        <div class="container-fluid px-3 px-md-5">
+            <div class="row g-4 mb-4">
+                
+                <!-- Column 1: Store & Owner Showcase -->
+                <div class="col-12 col-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fa-solid fa-bolt fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-0" data-i18n="brandTitle">Shree Sai Mobile</h5>
+                            <small class="text-primary fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.08em;">MOBILES & ELECTRONICS</small>
+                        </div>
+                    </div>
+
+                    <!-- Owner Profile Card inside Footer -->
+                    <div class="owner-highlight-card p-3 rounded-3 mb-3">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="owner-avatar-circle text-white fw-bold rounded-circle d-flex align-items-center justify-content-center">
+                                DK
+                            </div>
+                            <div>
+                                <div class="text-white-50 small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;" data-i18n="footerOwnerLabel">Shop Owner & Proprietor</div>
+                                <div class="fw-bold text-white fs-6">Devendra Koli <span class="badge bg-success-subtle text-success border border-success border-opacity-25 ms-1" style="font-size: 0.68rem;">Verified Owner</span></div>
+                            </div>
+                        </div>
+                        <p class="text-white-50 small mb-0" style="font-size: 0.82rem; line-height: 1.5;" data-i18n="footerOwnerDesc">
+                            श्री साई मोबाइल & इलेक्ट्रॉनिक्स में आपका स्वागत है। हम आपके लिए नए ब्रांडेड स्मार्टफोन्स, गैजेट्स, ओरिजिनल एक्सेसरीज और तेज रिपेयरिंग सर्विस 100% असली वारंटी के साथ उपलब्ध कराते हैं।
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons for Owner Contact -->
+                    <div class="d-flex gap-2">
+                        <a href="tel:7972296879" class="btn btn-sm btn-outline-light rounded-pill px-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-phone text-success"></i>
+                            <span>Call: 7972296879</span>
+                        </a>
+                        <a href="https://wa.me/917972296879?text=Hello%20Devendra%20ji,%20I%20have%20an%20inquiry%20regarding%20mobile%20purchase" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 d-flex align-items-center gap-2">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <span>WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Owner Contact & Shop Location -->
+                <div class="col-12 col-sm-6 col-md-3">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.85rem;">
+                        <i class="fa-solid fa-address-book text-primary me-2"></i><span data-i18n="footerContactHeading">Owner & Shop Contact</span>
+                    </h6>
+                    <ul class="list-unstyled text-white-50 small mb-0 d-flex flex-column gap-3" style="font-size: 0.85rem;">
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-user text-primary mt-1"></i>
+                            <div>
+                                <strong class="text-white d-block" data-i18n="footerOwnerTitle">Proprietor / Owner:</strong>
+                                <span class="text-white fw-semibold" data-i18n="footerOwnerNameText">Devendra Koli (देवेन्द्र कोली)</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-phone text-success mt-1"></i>
+                            <div>
+                                <strong class="text-white d-block" data-i18n="footerPhoneTitle">Primary Mobile & WhatsApp:</strong>
+                                <a href="tel:7972296879" class="text-white text-decoration-none fw-semibold">+91 7972296879</a>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-location-dot text-danger mt-1"></i>
+                            <div>
+                                <strong class="text-white d-block" data-i18n="footerAddressTitle">Store Address:</strong>
+                                <span data-i18n="footerAddressText">Main Market, Station Road, Shree Sai Mobile Shop, Jalgaon</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-clock text-warning mt-1"></i>
+                            <div>
+                                <strong class="text-white d-block" data-i18n="footerHoursTitle">Shop Timings:</strong>
+                                <span data-i18n="footerHoursText">9:00 AM – 9:30 PM (All 7 Days Open / रोज़ खुला)</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Brands & Key Services -->
+                <div class="col-12 col-sm-6 col-md-2">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.85rem;">
+                        <i class="fa-solid fa-mobile-screen text-primary me-2"></i><span data-i18n="footerProductsHeading">Our Products</span>
+                    </h6>
+                    <ul class="list-unstyled text-white-50 small mb-0 d-flex flex-column gap-2" style="font-size: 0.85rem;">
+                        <li><a href="javascript:void(0)" onclick="filterCategory('smartphones')" class="footer-link-item">Smartphones (5G & 4G)</a></li>
+                        <li><a href="javascript:void(0)" onclick="filterCategory('accessories')" class="footer-link-item">Fast Chargers & Cables</a></li>
+                        <li><a href="javascript:void(0)" onclick="filterCategory('accessories')" class="footer-link-item">TWS Earbuds & Audio</a></li>
+                        <li><a href="javascript:void(0)" onclick="filterCategory('accessories')" class="footer-link-item">Back Covers & Glass</a></li>
+                        <li><a href="javascript:void(0)" onclick="filterCategory('smartwatches')" class="footer-link-item">Smartwatches & Bands</a></li>
+                        <li><a href="javascript:void(0)" onclick="alert('Visit our store for 30-minute instant mobile screen and battery replacement!')" class="footer-link-item text-warning"><i class="fa-solid fa-screwdriver-wrench me-1"></i>Mobile Repair Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Customer Help & Policies -->
+                <div class="col-12 col-md-3">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.85rem;">
+                        <i class="fa-solid fa-circle-question text-primary me-2"></i><span data-i18n="footerHelpHeading">Customer Care</span>
+                    </h6>
+                    <p class="text-white-50 small mb-3" style="font-size: 0.84rem; line-height: 1.5;" data-i18n="footerHelpDesc">
+                        ऑर्डर से संबंधित किसी भी सहायता या वारंटी की जानकारी के लिए आप सीधे दुकान मालिक देवेन्द्र कोली जी से बात कर सकते हैं।
+                    </p>
+
+                    <div class="p-2 px-3 rounded-3 bg-dark-subtle-2 mb-3">
+                        <div class="small fw-semibold text-white d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-headset text-success"></i>
+                            <span data-i18n="footerSupportDirect">Direct Owner Support:</span>
+                        </div>
+                        <a href="tel:7972296879" class="text-primary fw-bold text-decoration-none font-monospace fs-6">7972296879</a>
+                    </div>
+
+                    <!-- Admin Login Shortcut -->
+                    <div class="mt-2">
+                        <a href="login.html" class="text-white-50 small text-decoration-none footer-link-item" style="font-size: 0.75rem;">
+                            <i class="fa-solid fa-lock me-1"></i> <span data-i18n="footerAdminPortal">Store Staff & Admin Portal</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <hr class="border-secondary border-opacity-25 my-4">
+
+            <!-- Bottom Copyright & Payment Modes Bar -->
+            <div class="row align-items-center g-3 pb-md-0 pb-5">
+                <div class="col-12 col-md-6 text-center text-md-start">
+                    <div class="text-white-50 small" style="font-size: 0.8rem;">
+                        © 2026 <strong class="text-white">Shree Sai Mobile & Electronics</strong>. All Rights Reserved.
+                    </div>
+                    <div class="text-white-50" style="font-size: 0.74rem;">
+                        Proprietor: <span class="text-white fw-semibold">Devendra Koli</span> | Main Market, Station Road, Jalgaon.
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 text-center text-md-end">
+                    <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-center justify-content-md-end">
+                        <span class="badge bg-secondary-subtle text-white border border-secondary border-opacity-50" style="font-size: 0.72rem;"><i class="fa-solid fa-money-bill-wave text-success me-1"></i> Cash on Delivery</span>
+                        <span class="badge bg-secondary-subtle text-white border border-secondary border-opacity-50" style="font-size: 0.72rem;"><i class="fa-solid fa-qrcode text-primary me-1"></i> UPI / PhonePe / GPay</span>
+                        <span class="badge bg-secondary-subtle text-white border border-secondary border-opacity-50" style="font-size: 0.72rem;"><i class="fa-solid fa-shield-halved text-warning me-1"></i> 100% Genuine</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 8. Mobile Sticky Bottom Navigation (Exact icons from user's photo) -->
+    <nav class="mobile-bottom-nav">
+        <a href="javascript:void(0)" class="bottom-nav-item active" onclick="resetFilters()">
+            <i class="fa-solid fa-house"></i>
+            <span data-i18n="homeNav">Home</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="openCategoriesModal()">
+            <i class="fa-solid fa-border-all"></i>
+            <span data-i18n="categoriesNav">Categories</span>
+        </a>
+        <a href="javascript:void(0)" onclick="handleCustomerAccountClick()" class="bottom-nav-item">
+            <i class="fa-solid fa-user"></i>
+            <span data-i18n="accountNav">Account</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item position-relative" onclick="openCartDrawer()">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span data-i18n="cartNav">Cart</span>
+            <span class="cart-counter-badge cart-count-badge" style="display: none;">0</span>
+        </a>
+    </nav>
+
+    <!-- 9. Floating WhatsApp Direct Contact -->
+    <a href="https://api.whatsapp.com/send?phone=917972296879&text=Hello%20Shree%20Sai%20Mobile,%20I%20want%20to%20inquire%20about%20products" target="_blank" class="whatsapp-float-btn" title="Chat with Store Support on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- 10. Slide-Over Shopping Cart Drawer (Offcanvas) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel">
+                <i class="fa-solid fa-bag-shopping text-primary me-2"></i><span data-i18n="cartTitle">My Shopping Cart</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body d-flex flex-column">
+            <!-- Items List -->
+            <div id="cartItemsContainer" class="flex-grow-1 overflow-y-auto mb-3"></div>
+
+            <!-- Price Breakdown & Checkout -->
+            <div class="border-top pt-3 mt-auto">
+                <div class="d-flex justify-content-between mb-2 small text-muted">
+                    <span data-i18n="subtotalLabel">Subtotal:</span>
+                    <span id="cartSubtotalPrice" class="fw-semibold text-dark">₹0</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 small text-muted">
+                    <span>Delivery:</span>
+                    <span class="text-success fw-bold" data-i18n="freeDeliveryLabel">FREE Delivery</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 fs-5 fw-bold text-dark">
+                    <span data-i18n="totalAmountLabel">Total Amount:</span>
+                    <span id="cartTotalPrice" class="text-primary">₹0</span>
+                </div>
+
+                <!-- Customer Details for WhatsApp / COD Order -->
+                <div class="mb-3 p-3 bg-light rounded-3 border" id="checkoutDetailsCard">
+                    <!-- State A: Saved Profile Display -->
+                    <div id="checkoutSavedProfileState" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                            <span class="small fw-bold text-success"><i class="fa-solid fa-circle-check me-1"></i> <span data-i18n="deliveringTo">Delivering to:</span></span>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold small" style="font-size: 0.78rem;" onclick="toggleEditCheckoutDetails(true)">
+                                <i class="fa-solid fa-pen-to-square me-1"></i><span data-i18n="editBtn">Edit</span>
+                            </button>
+                        </div>
+                        <div class="fw-bold text-dark" id="checkoutSavedName">-</div>
+                        <div class="small text-muted mb-1"><i class="fa-solid fa-phone text-primary me-1"></i><span id="checkoutSavedPhone">-</span></div>
+                        <div class="small text-secondary"><i class="fa-solid fa-location-dot text-danger me-1"></i><span id="checkoutSavedAddress">-</span></div>
+                    </div>
+
+                    <!-- State B: Input Fields (For new customer or when editing) -->
+                    <div id="checkoutEditState">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold small mb-0 text-dark" data-i18n="quickDeliveryTitle">Delivery & Contact Details</h6>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none small" style="font-size: 0.75rem;" onclick="promptReturningCustomerLookup()">
+                                <span data-i18n="returningCustLink">Already registered?</span>
+                            </button>
+                        </div>
+                        <input type="text" id="checkoutName" class="form-control form-control-sm mb-2" placeholder="Your Full Name (पूरा नाम) *" data-i18n-placeholder="namePlaceholder">
+                        <input type="tel" id="checkoutPhone" class="form-control form-control-sm mb-2" placeholder="10-Digit Mobile Number (मोबाइल नंबर) *" data-i18n-placeholder="phonePlaceholder" maxlength="10">
+                        <input type="text" id="checkoutAddress" class="form-control form-control-sm mb-2" placeholder="Delivery Address / City (डिलीवरी का पता) *" data-i18n-placeholder="addressPlaceholder">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chkSaveCustomerProfile" checked>
+                            <label class="form-check-label text-muted" for="chkSaveCustomerProfile" style="font-size: 0.75rem;" data-i18n="chkSaveDetails">
+                                Save details for faster future orders
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1. Primary Button: Pay Online via PhonePe / GPay / QR Scanner -->
+                <button class="btn btn-pay-online-upi w-100 py-3 fw-bold mb-2 d-flex align-items-center justify-content-center gap-2 rounded-3 shadow-sm" onclick="startUpiOnlinePayment()">
+                    <i class="fa-solid fa-qrcode fa-lg"></i>
+                    <span data-i18n="payOnlineUpiBtn">Pay Online (PhonePe / GPay / QR)</span>
+                </button>
+
+                <!-- 2. Dual Buttons: WhatsApp Order & Cash on Delivery -->
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <button class="btn btn-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-1 rounded-3" style="font-size: 0.82rem;" onclick="placeOnlineOrder('WhatsApp Order')">
+                            <i class="fa-brands fa-whatsapp"></i> <span data-i18n="orderWhatsappBtn">WhatsApp</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary w-100 py-2 fw-semibold rounded-3" style="font-size: 0.82rem;" onclick="placeOnlineOrder('Cash on Delivery')" data-i18n="codBtn">
+                            Cash on Delivery
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         Meesho-Style Left Side Categories Offcanvas Drawer (Bootstrap 5.3)
+         ========================================================== -->
+    <div class="offcanvas offcanvas-start meesho-categories-offcanvas p-0" tabindex="-1" id="categoriesOffcanvas" aria-labelledby="categoriesOffcanvasLabel">
+        <!-- Header -->
+        <div class="offcanvas-header border-bottom py-3 px-3 bg-light d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center shadow-xs" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-list-ul"></i>
+                </div>
+                <div>
+                    <h6 class="offcanvas-title fw-bold mb-0 text-dark" id="categoriesOffcanvasLabel" data-i18n="categoriesModalTitle">
+                        All Categories (सभी कैटेगरी)
+                    </h6>
+                    <small class="text-muted" style="font-size: 0.72rem;">Meesho Style 2-Column Explorer</small>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <!-- Offcanvas Body -->
+        <div class="offcanvas-body p-0 d-flex flex-column h-100 overflow-hidden">
+            <!-- Quick 'All Products' Row -->
+            <div class="p-2 border-bottom bg-white">
+                <button type="button" class="btn btn-sm btn-primary w-100 rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-xs" onclick="selectCategory('all')">
+                    <i class="fa-solid fa-border-all"></i> <span data-i18n="catAllBadge">All Products (सभी सामान)</span> • 18 Items
+                </button>
+            </div>
+
+            <!-- Meesho Split Two-Column Container -->
+            <div class="meesho-split-container d-flex flex-grow-1 overflow-hidden" style="height: calc(100vh - 120px);">
+                <!-- Left Vertical Rail (Category Tabs) -->
+                <div class="meesho-rail bg-light border-end overflow-y-auto" style="width: 36%; min-width: 120px;">
+                    <!-- Rail 1: Mobiles -->
+                    <div class="meesho-rail-item active" data-meesho-cat="mobiles" onclick="showMeeshoCategoryDetail('mobiles')">
+                        <div class="meesho-rail-icon bg-primary-subtle text-primary">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                        <span class="meesho-rail-title">Mobiles</span>
+                        <span class="meesho-rail-count">6 Items</span>
+                    </div>
+
+                    <!-- Rail 2: Smart TVs -->
+                    <div class="meesho-rail-item" data-meesho-cat="tvs" onclick="showMeeshoCategoryDetail('tvs')">
+                        <div class="meesho-rail-icon" style="background-color: #f3e8ff; color: #7c3aed;">
+                            <i class="fa-solid fa-tv"></i>
+                        </div>
+                        <span class="meesho-rail-title">Smart TVs</span>
+                        <span class="meesho-rail-count">3 Items</span>
+                    </div>
+
+                    <!-- Rail 3: Washing Machines -->
+                    <div class="meesho-rail-item" data-meesho-cat="washing_machines" onclick="showMeeshoCategoryDetail('washing_machines')">
+                        <div class="meesho-rail-icon bg-info-subtle text-info">
+                            <i class="fa-solid fa-soap"></i>
+                        </div>
+                        <span class="meesho-rail-title">Washers</span>
+                        <span class="meesho-rail-count">3 Items</span>
+                    </div>
+
+                    <!-- Rail 4: Audio -->
+                    <div class="meesho-rail-item" data-meesho-cat="audio" onclick="showMeeshoCategoryDetail('audio')">
+                        <div class="meesho-rail-icon bg-success-subtle text-success">
+                            <i class="fa-solid fa-headphones"></i>
+                        </div>
+                        <span class="meesho-rail-title">Audio</span>
+                        <span class="meesho-rail-count">3 Items</span>
+                    </div>
+
+                    <!-- Rail 5: Chargers -->
+                    <div class="meesho-rail-item" data-meesho-cat="chargers" onclick="showMeeshoCategoryDetail('chargers')">
+                        <div class="meesho-rail-icon bg-warning-subtle text-warning">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <span class="meesho-rail-title">Chargers</span>
+                        <span class="meesho-rail-count">2 Items</span>
+                    </div>
+
+                    <!-- Rail 6: Accessories -->
+                    <div class="meesho-rail-item" data-meesho-cat="accessories" onclick="showMeeshoCategoryDetail('accessories')">
+                        <div class="meesho-rail-icon bg-secondary-subtle text-secondary">
+                            <i class="fa-solid fa-shield"></i>
+                        </div>
+                        <span class="meesho-rail-title">Accessories</span>
+                        <span class="meesho-rail-count">Combo</span>
+                    </div>
+                </div>
+
+                <!-- Right Detail Area -->
+                <div class="meesho-detail-panel bg-white p-3 flex-grow-1 overflow-y-auto" id="meeshoDetailContent">
+                    <!-- Panel 1: Mobiles (Active by default) -->
+                    <div class="meesho-category-panel d-block" data-panel-cat="mobiles">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Mobiles (स्मार्टफोन)</h6>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill">6 Models</span>
+                        </div>
+                        <div class="p-2 bg-primary-subtle rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                            <small class="text-primary fw-semibold">Starts @ ₹16,999</small>
+                            <button class="btn btn-sm btn-primary rounded-pill py-0 px-2 fw-bold" style="font-size: 0.72rem;" onclick="selectCategory('mobiles')">View All Mobiles →</button>
+                        </div>
+
+                        <!-- Brand Chips -->
+                        <div class="small fw-bold text-muted mb-2">Popular Brands (ब्रांड्स):</div>
+                        <div class="row row-cols-3 g-2 mb-3 text-center">
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Apple', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-brands fa-apple fa-lg text-dark"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">iPhone</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Samsung', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-s fa-lg text-primary"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Samsung</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('OnePlus', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-mobile-button fa-lg text-success"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">OnePlus</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Vivo', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-v fa-lg text-primary"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Vivo</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Redmi', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-bolt fa-lg text-danger"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Redmi</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Realme', 'mobiles')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-r fa-lg text-warning"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Realme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Available Phone Models:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">Samsung Galaxy S24 Ultra</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">AI Features • S-Pen</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,09,999</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">Apple iPhone 15 Pro</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Titanium • A17 Pro</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,24,900</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">Redmi Note 13 5G</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">108MP 3X Zoom</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹16,999</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">Vivo V30 5G</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Smart Aura Light</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹32,999</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">OnePlus Nord CE4 5G</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">100W SuperVOOC</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹24,999</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('mobiles')">
+                            <div>
+                                <div class="fw-bold text-dark small">Realme 12 Pro 5G</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Periscope Portrait</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹25,999</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Smart TVs -->
+                    <div class="meesho-category-panel d-none" data-panel-cat="tvs">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Smart 4K TVs (स्मार्ट टीवी)</h6>
+                            <span class="badge rounded-pill" style="background-color: #f3e8ff; color: #7c3aed;">3 Models</span>
+                        </div>
+                        <div class="p-2 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background-color: #f3e8ff;">
+                            <small class="fw-semibold" style="color: #7c3aed;">Starts @ ₹11,999</small>
+                            <button class="btn btn-sm rounded-pill py-0 px-2 fw-bold text-white" style="background-color: #7c3aed; font-size: 0.72rem;" onclick="selectCategory('tvs')">View All TVs →</button>
+                        </div>
+
+                        <!-- Brand Chips -->
+                        <div class="small fw-bold text-muted mb-2">Top TV Brands:</div>
+                        <div class="row row-cols-3 g-2 mb-3 text-center">
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Sony', 'tvs')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-tv fa-lg text-dark"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Sony</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Samsung', 'tvs')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-s fa-lg text-primary"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Samsung</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Xiaomi', 'tvs')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-bolt fa-lg text-danger"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Xiaomi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Available TV Models:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('tvs')">
+                            <div>
+                                <div class="fw-bold text-dark small">Sony Bravia 55" 4K Google TV</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Dolby Atmos • Bezel-less</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹58,990</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('tvs')">
+                            <div>
+                                <div class="fw-bold text-dark small">Samsung Crystal 43" 4K TV</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">HDR10+ • Voice Assistant</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹29,990</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('tvs')">
+                            <div>
+                                <div class="fw-bold text-dark small">Xiaomi 32" HD Smart Google TV</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">PatchWall • Vivid Picture</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹11,999</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 3: Washing Machines -->
+                    <div class="meesho-category-panel d-none" data-panel-cat="washing_machines">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Washers (वाशिंग मशीन)</h6>
+                            <span class="badge bg-info-subtle text-info rounded-pill">3 Models</span>
+                        </div>
+                        <div class="p-2 bg-info-subtle rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                            <small class="text-info fw-semibold">Starts @ ₹10,490</small>
+                            <button class="btn btn-sm btn-info text-white rounded-pill py-0 px-2 fw-bold" style="font-size: 0.72rem;" onclick="selectCategory('washing_machines')">View All Washers →</button>
+                        </div>
+
+                        <!-- Brand Chips -->
+                        <div class="small fw-bold text-muted mb-2">Appliance Brands:</div>
+                        <div class="row row-cols-3 g-2 mb-3 text-center">
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('LG', 'washing_machines')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-soap fa-lg text-danger"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">LG</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Samsung', 'washing_machines')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-s fa-lg text-primary"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Samsung</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('Whirlpool', 'washing_machines')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-wind fa-lg text-info"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Whirlpool</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Available Washer Models:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('washing_machines')">
+                            <div>
+                                <div class="fw-bold text-dark small">LG 8 Kg 5-Star AI DD Washer</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Front Load • Steam Wash</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹34,990</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('washing_machines')">
+                            <div>
+                                <div class="fw-bold text-dark small">Samsung 7 Kg Eco Bubble Top Load</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Soft Closing • Magic Filter</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹15,490</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('washing_machines')">
+                            <div>
+                                <div class="fw-bold text-dark small">Whirlpool 7.5 Kg Superb Atom</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Semi-Automatic • Hard Water Wash</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹10,490</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 4: Audio & Earbuds -->
+                    <div class="meesho-category-panel d-none" data-panel-cat="audio">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Audio & Earbuds (ईयरबड्स)</h6>
+                            <span class="badge bg-success-subtle text-success rounded-pill">3 Models</span>
+                        </div>
+                        <div class="p-2 bg-success-subtle rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                            <small class="text-success fw-semibold">Starts @ ₹1,199</small>
+                            <button class="btn btn-sm btn-success rounded-pill py-0 px-2 fw-bold" style="font-size: 0.72rem;" onclick="selectCategory('audio')">View All Audio →</button>
+                        </div>
+
+                        <!-- Brand Chips -->
+                        <div class="small fw-bold text-muted mb-2">Audio Brands:</div>
+                        <div class="row row-cols-3 g-2 mb-3 text-center">
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('boAt', 'audio')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-headphones fa-lg text-danger"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">boAt</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('OnePlus', 'audio')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-circle-play fa-lg text-success"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">OnePlus</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="meesho-brand-chip" onclick="selectBrandFromMeesho('JBL', 'audio')">
+                                    <div class="meesho-brand-icon"><i class="fa-solid fa-volume-high fa-lg text-warning"></i></div>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">JBL</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Available Audio Gear:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('audio')">
+                            <div>
+                                <div class="fw-bold text-dark small">boAt Airdopes 141 ANC</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">32dB ANC • 42H Playtime</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,199</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('audio')">
+                            <div>
+                                <div class="fw-bold text-dark small">OnePlus Bullets Wireless Z2</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Bass Edition • 10m Charge 20H</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,499</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('audio')">
+                            <div>
+                                <div class="fw-bold text-dark small">JBL Go 3 Portable Speaker</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">IP67 Waterproof • Punchy Bass</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹2,999</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 5: Chargers & Power Banks -->
+                    <div class="meesho-category-panel d-none" data-panel-cat="chargers">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Chargers & Power Banks</h6>
+                            <span class="badge bg-warning-subtle text-warning rounded-pill">2 Models</span>
+                        </div>
+                        <div class="p-2 bg-warning-subtle rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                            <small class="text-warning fw-semibold">Starts @ ₹1,499</small>
+                            <button class="btn btn-sm btn-warning text-dark rounded-pill py-0 px-2 fw-bold" style="font-size: 0.72rem;" onclick="selectCategory('chargers')">View All Chargers →</button>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Available Fast Chargers:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('chargers')">
+                            <div>
+                                <div class="fw-bold text-dark small">OnePlus 65W Warp / SuperVOOC</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Dual Port Fast Adapter</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,499</div>
+                        </div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('chargers')">
+                            <div>
+                                <div class="fw-bold text-dark small">Mi 20000mAh 18W Fast Power Bank</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Triple Output • Metallic Body</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹1,999</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 6: Accessories -->
+                    <div class="meesho-category-panel d-none" data-panel-cat="accessories">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0">Covers & Accessories</h6>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill">Combo</span>
+                        </div>
+                        <div class="p-2 bg-secondary-subtle rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                            <small class="text-secondary fw-semibold">Starts @ ₹299</small>
+                            <button class="btn btn-sm btn-secondary rounded-pill py-0 px-2 fw-bold" style="font-size: 0.72rem;" onclick="selectCategory('accessories')">View Accessories →</button>
+                        </div>
+
+                        <!-- Products List -->
+                        <div class="small fw-bold text-muted mb-2">Combo Offers:</div>
+                        <div class="meesho-product-item-row d-flex justify-content-between align-items-center" onclick="selectCategory('accessories')">
+                            <div>
+                                <div class="fw-bold text-dark small">9D Curved Tempered + Matte Case</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">Available for all phones</div>
+                            </div>
+                            <div class="text-primary fw-bold small">₹299</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Confirmation Modal -->
+    <div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-success text-white border-0 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-check fa-xl"></i>
+                        <h5 class="modal-title fw-bold mb-0" id="orderSuccessModalLabel" data-i18n="orderSuccessTitle">Order Placed Successfully! 🎉</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold" style="font-size: 0.95rem;">
+                            Order ID: <span id="successOrderId">ORD-000000</span>
+                        </span>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-1" id="successOrderItemsSummary">Washing Machine</h6>
+                    <div class="text-primary fw-extrabold fs-4 mb-3" id="successOrderTotal">₹0</div>
+
+                    <div class="p-3 bg-light rounded-3 text-start mb-3 border" style="font-size: 0.85rem;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Customer:</span>
+                            <strong id="successCustomerName">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Phone:</span>
+                            <strong id="successCustomerPhone">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Delivery Address:</span>
+                            <strong id="successCustomerAddress" class="text-truncate" style="max-width: 220px;">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Payment:</span>
+                            <span class="badge bg-primary" id="successPaymentMethod">Cash on Delivery / UPI</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success py-2 px-3 small text-start mb-3 border-success d-flex align-items-center gap-2">
+                        <i class="fa-brands fa-whatsapp fa-xl text-success flex-shrink-0"></i>
+                        <div>
+                            <strong>दुकानदार WhatsApp नोटिफिकेशन:</strong>
+                            <div class="text-secondary small">दुकान मालिक (+91 7972296879) को इस ऑर्डर की तुरंत जानकारी व रसीद WhatsApp पर भेजें:</div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success fw-bold py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm" id="successWhatsAppBtn" style="font-size: 1rem;">
+                            <i class="fa-brands fa-whatsapp fa-xl"></i> <span data-i18n="notifyProprietorBtn">Send Order to Shop Owner on WhatsApp</span>
+                        </button>
+                        <!-- Quick Online Pay / QR Scanner from Success screen -->
+                        <button type="button" class="btn btn-pay-online-upi fw-bold py-2 rounded-3 d-flex align-items-center justify-content-center gap-2" id="successPayUpiBtn" onclick="openUpiModalForCurrentOrder()">
+                            <i class="fa-solid fa-qrcode fa-lg"></i> <span>Pay Online / View QR Code</span>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary py-2 rounded-3" data-bs-dismiss="modal">
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         Interactive UPI Online Payment & QR Scanner Modal
+         ========================================================== -->
+    <div class="modal fade" id="upiPaymentModal" tabindex="-1" aria-labelledby="upiPaymentModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Header with PhonePe & GPay Icons -->
+                <div class="modal-header text-white border-0 py-2 py-md-3 px-3 px-md-4" style="background: linear-gradient(135deg, #5f259f 0%, #1a73e8 100%);">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="fa-solid fa-qrcode fa-lg text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="upiPaymentModalLabel" data-i18n="upiModalTitle">Online Payment & QR Scanner</h5>
+                            <small class="text-white-50" style="font-size: 0.74rem;" data-i18n="upiModalSubtitle">PhonePe • Google Pay • Paytm • BHIM UPI</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-3 p-md-4">
+                    <div class="row g-3 g-md-4 align-items-center">
+                        <!-- LEFT COLUMN: Total Amount + Scanner QR Viewfinder -->
+                        <div class="col-12 col-md-5 text-center border-end-md pe-md-4">
+                            <!-- Amount Box -->
+                            <div class="p-2 p-md-3 rounded-4 mb-2 border text-center" style="background: #f8fafc;">
+                                <span class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.72rem;" data-i18n="totalPayableLabel">Total Amount to Pay</span>
+                                <div class="fs-2 fw-extrabold text-primary lh-1 my-1" id="upiPayableAmount">₹0</div>
+                                <div class="small text-muted font-monospace" style="font-size: 0.75rem;" id="upiOrderIdDisplay">Order ID: ORD-000000</div>
+                            </div>
+
+                            <!-- The Scanner Frame with dynamic QR Code -->
+                            <div class="my-2">
+                                <div class="scanner-viewfinder shadow-sm border">
+                                    <!-- 4 Corner Viewfinder Reticles -->
+                                    <div class="scanner-corner top-left"></div>
+                                    <div class="scanner-corner top-right"></div>
+                                    <div class="scanner-corner bottom-left"></div>
+                                    <div class="scanner-corner bottom-right"></div>
+
+                                    <!-- Animated Laser Scan Line -->
+                                    <div class="scanner-scan-line"></div>
+
+                                    <!-- Dynamic QR Code Image -->
+                                    <img id="upiQrCodeImg" src="" alt="UPI Payment QR Code" class="upi-qr-image mx-auto">
+                                </div>
+                                <div class="mt-2 text-muted small fw-semibold" style="font-size: 0.76rem;" data-i18n="scanQrInstruction">
+                                    <i class="fa-solid fa-camera text-primary me-1"></i> Open PhonePe, Google Pay or Paytm &amp; Scan QR to Pay
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Verified Merchant, App Buttons, UPI Pill, UTR & Actions -->
+                        <div class="col-12 col-md-7 text-start ps-md-3">
+                            <!-- Shop & Payee Info Bar -->
+                            <div class="d-flex justify-content-between align-items-center bg-light p-2 px-3 rounded-3 mb-2 border text-start">
+                                <div>
+                                    <span class="text-muted small" style="font-size: 0.7rem;" data-i18n="verifiedMerchantLabel">Verified Merchant:</span>
+                                    <div class="fw-bold text-dark small" id="upiPayeeNameDisplay">Devendra Koli (Shree Sai Mobile)</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
+                                        <i class="fa-solid fa-shield-check me-1"></i> Verified UPI
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Mobile 1-Tap App Payment Buttons (for customers on smartphone) -->
+                            <div class="mb-2">
+                                <div class="small text-muted mb-1 text-start fw-semibold" style="font-size: 0.76rem;" data-i18n="orPayWithAppsLabel">
+                                    <i class="fa-solid fa-mobile-screen-button me-1"></i> Or tap directly to pay on this phone:
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <button type="button" id="upiBtnPhonePe" class="btn btn-upi-app btn-upi-phonepe w-100 py-1" onclick="payWithUpi('phonepe')">
+                                            <i class="fa-solid fa-bolt"></i> <span data-i18n="btnPhonePeText">PhonePe</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" id="upiBtnGPay" class="btn btn-upi-app btn-upi-gpay w-100 py-1" onclick="payWithUpi('gpay')">
+                                            <i class="fa-brands fa-google"></i> <span data-i18n="btnGPayText">Google Pay</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" id="upiBtnPaytm" class="btn btn-upi-app btn-upi-paytm w-100 py-1" onclick="payWithUpi('paytm')">
+                                            <i class="fa-solid fa-wallet"></i> <span data-i18n="btnPaytmText">Paytm</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" id="upiBtnAny" class="btn btn-upi-app btn-upi-other w-100 py-1" onclick="payWithUpi('any')">
+                                            <i class="fa-solid fa-qrcode"></i> <span data-i18n="btnAnyUpiText">Any UPI App</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-1 text-muted small" style="font-size: 0.7rem; line-height: 1.25;">
+                                    <i class="fa-solid fa-circle-info text-primary me-1"></i> 
+                                    <span>मोबाइल फोन में सीधे ऐप खुलेगा। कंप्यूटर पर हैं तो बाएँ दिया गया QR कोड स्कैन करें।</span>
+                                </div>
+                            </div>
+
+                            <!-- Copy UPI ID Pill -->
+                            <div class="upi-copy-pill d-flex justify-content-between align-items-center mb-2 py-1 px-3">
+                                <div class="text-start">
+                                    <small class="text-muted d-block" style="font-size: 0.68rem;">Shop UPI ID:</small>
+                                    <span class="font-monospace fw-bold text-dark small" id="upiIdDisplay">7972296879@ybl</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" onclick="copyShopUpiId()" style="font-size: 0.72rem;">
+                                    <i class="fa-regular fa-copy me-1"></i> <span id="copyUpiBtnText" data-i18n="copyUpiIdBtn">Copy UPI ID</span>
+                                </button>
+                            </div>
+
+                            <!-- Step 2: UTR / Reference Number & Confirm Order -->
+                            <div class="p-2 bg-light rounded-3 border text-start mb-2">
+                                <label class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                                    <i class="fa-solid fa-receipt text-success"></i>
+                                    <span data-i18n="step2UtrTitle">Step 2: Enter Transaction Details (After Payment)</span>
+                                </label>
+                                <input type="text" id="upiUtrNumberInput" class="form-control form-control-sm font-monospace mb-1" placeholder="Enter 12-Digit UPI Ref / UTR No..." data-i18n-placeholder="utrPlaceholder" maxlength="22">
+                                <small class="text-muted d-block" style="font-size: 0.68rem; line-height: 1.3;">
+                                    पेमेंट सफल होने के बाद PhonePe / Google Pay में दिखने वाला 12-अंकों का <strong>UTR / UPI Ref No.</strong> यहाँ डालें।
+                                </small>
+                            </div>
+
+                            <!-- Final Action Buttons -->
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-success py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="confirmUpiPaymentSubmission()">
+                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="confirmUpiOrderBtn">I Have Paid • Confirm Order</span>
+                                </button>
+
+                                <button type="button" class="btn btn-outline-success py-1 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-2" onclick="sendUpiPaymentProofOnWhatsApp()" style="font-size: 0.85rem;">
+                                    <i class="fa-brands fa-whatsapp fa-lg"></i> <span data-i18n="sendReceiptWhatsappBtn">Send Payment Receipt on WhatsApp</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Profile / About Details Modal -->
+    <div class="modal fade" id="customerProfileModal" tabindex="-1" aria-labelledby="customerProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="fa-solid fa-id-card fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" id="customerProfileModalLabel" data-i18n="profileModalTitle">Customer Profile & Details</h5>
+                            <small class="text-white-50" data-i18n="profileModalSubtitle">Your saved registration details</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Registration Info Summary Card -->
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small"><i class="fa-regular fa-calendar me-1"></i><span data-i18n="memberSince">Member Since:</span></span>
+                            <span class="badge bg-white text-dark border fw-bold" id="profCustRegisteredDate">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small"><i class="fa-solid fa-bag-shopping me-1"></i><span data-i18n="totalOrdersCount">Total Orders:</span></span>
+                            <span class="badge bg-primary rounded-pill fw-bold" id="profCustTotalOrders">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Editable Registration Details Form -->
+                    <form id="customerProfileForm" onsubmit="saveCustomerProfile(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary" data-i18n="fullNameLabel">Full Name (पूरा नाम)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-user text-muted"></i></span>
+                                <input type="text" id="profCustName" class="form-control border-start-0" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary" data-i18n="phoneLabel">Registered Mobile Number (मोबाइल नंबर)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-muted"></i></span>
+                                <input type="tel" id="profCustPhone" class="form-control border-start-0 bg-light" readonly title="Mobile number is your account ID">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Account ID cannot be changed</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary" data-i18n="deliveryAddressLabel">Saved Delivery Address (डिलीवरी का पता)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                <textarea id="profCustAddress" class="form-control border-start-0" rows="2" placeholder="Enter house no, street, area, landmark, city..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold py-2 rounded-3 d-flex align-items-center justify-content-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="saveProfileBtn">Save & Update Details</span>
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary flex-grow-1 py-2 rounded-3" onclick="openCustomerOrdersModal()">
+                                    <i class="fa-solid fa-box-open me-1"></i> <span data-i18n="viewMyOrders">My Orders</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger py-2 px-3 rounded-3" onclick="logoutCustomer()" title="Logout from Store">
+                                    <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span data-i18n="logoutLabel">Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Past Orders Modal -->
+    <div class="modal fade" id="customerOrdersModal" tabindex="-1" aria-labelledby="customerOrdersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-box-open fa-lg text-primary"></i>
+                        <h5 class="modal-title fw-bold mb-0" id="customerOrdersModalLabel" data-i18n="myOrdersLabel">My Past Orders</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 p-md-4" id="customerOrdersListContainer" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- Injected dynamically by store.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Quick Account / Sign In Modal (Returning Customer Lookup) -->
+    <div class="modal fade" id="customerAuthModal" tabindex="-1" aria-labelledby="customerAuthModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-user fa-lg"></i>
+                        <h5 class="modal-title fw-bold mb-0" id="customerAuthModalLabel" data-i18n="customerAccountTitle">My Customer Account</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3" data-i18n="customerAccountSubtitle">
+                        Enter your 10-digit mobile number to access your saved profile and track your orders:
+                    </p>
+                    <form onsubmit="handleCustomerLookupSubmit(event)">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark" data-i18n="mobileNumberLabel">Mobile Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-phone text-muted"></i></span>
+                                <input type="tel" id="lookupCustomerPhone" class="form-control" placeholder="Enter 10-digit phone number" maxlength="10" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 mb-2" data-i18n="btnLookUpAccount">
+                            Access My Profile & Orders
+                        </button>
+                    </form>
+                    <div class="alert alert-light border small text-muted mb-0 mt-3">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i>
+                        <span data-i18n="newCustomerNotice">New customer? No need to sign up now! Simply browse, add items to cart, and enter delivery details at checkout.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Customer Login / Registration & 10-Digit OTP Verification Modal -->
+    <div class="modal fade" id="orderAuthModal" tabindex="-1" aria-labelledby="orderAuthModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="fa-solid fa-cart-shopping fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" id="orderAuthModalLabel" data-i18n="orderModalTitle">Customer Details & Mobile Verification</h5>
+                            <small class="text-white-50" data-i18n="orderModalSubtitle">Enter your details to confirm your delivery order</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="orderAuthForm" onsubmit="handleOrderAuthSubmit(event)">
+                        
+                        <!-- 1. Customer Full Name -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark" data-i18n="fullNameLabel">Full Name (पूरा नाम) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-user text-muted"></i></span>
+                                <input type="text" id="orderCustName" class="form-control border-start-0" placeholder="e.g. Ramesh Kumar" required autocomplete="name">
+                            </div>
+                        </div>
+
+                        <!-- 2. Mobile Number with Dynamic "Verify" Button on 10th Digit -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0" data-i18n="phoneLabel">Mobile Number (मोबाइल नंबर) *</label>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill d-none" id="phoneVerifiedBadge">
+                                    <i class="fa-solid fa-circle-check me-1"></i> <span data-i18n="verifiedBadge">Verified</span>
+                                </span>
+                            </div>
+                            
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 fw-semibold text-muted">+91</span>
+                                <input type="tel" id="orderCustPhone" class="form-control" placeholder="Enter 10-digit mobile" maxlength="10" required autocomplete="tel" oninput="handlePhoneInputChange(this)">
+                                
+                                <!-- Dynamic Verify Button: Appears on 10th digit -->
+                                <button type="button" class="btn btn-warning fw-bold px-3 d-none" id="btnSendPhoneOtp" onclick="sendOrderPhoneOtp()">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> <span data-i18n="verifyBtn">Verify</span>
+                                </button>
+                            </div>
+                            <small class="text-muted" id="phoneHelpText" style="font-size: 0.74rem;">
+                                10-digit number enter karte hi "Verify" button aayega.
+                            </small>
+                        </div>
+
+                        <!-- 3. OTP Verification Section (Revealed when Verify is clicked) -->
+                        <div id="otpSection" class="p-3 bg-light border rounded-3 mb-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-dark"><i class="fa-solid fa-key text-primary me-1"></i> <span data-i18n="enterOtpLabel">Enter 4-Digit OTP</span></span>
+                                <span class="small text-muted" id="otpTimerDisplay" style="font-size: 0.76rem;"></span>
+                            </div>
+                            
+                            <div class="input-group mb-2">
+                                <input type="text" id="orderOtpInput" class="form-control font-monospace text-center fs-5 fw-bold letter-spacing-2" placeholder="••••" maxlength="4" autocomplete="one-time-code">
+                                <button type="button" class="btn btn-primary fw-bold px-3" id="btnVerifyOtp" onclick="verifyOrderPhoneOtp()">
+                                    <i class="fa-solid fa-check me-1"></i> <span data-i18n="verifyOtpBtn">Verify OTP</span>
+                                </button>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none small text-muted" id="btnResendOtp" onclick="sendOrderPhoneOtp()" disabled>
+                                    <span data-i18n="resendOtpBtn">Resend OTP</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success border-0 small py-0" onclick="sendOtpViaWhatsApp()" style="font-size: 0.75rem;">
+                                    <i class="fa-brands fa-whatsapp text-success me-1"></i> WhatsApp OTP
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4. Delivery Address & City -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark" data-i18n="deliveryAddressLabel">Delivery Address & City (डिलीवरी का पता व शहर) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                <textarea id="orderCustAddress" class="form-control border-start-0" rows="2" placeholder="House/Flat No, Landmark, Area, City..." required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 5. Save Details Checkbox -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="chkOrderSaveProfile" checked>
+                            <label class="form-check-label text-muted small" for="chkOrderSaveProfile" data-i18n="chkSaveDetails">
+                                Save details for faster future orders (मेरी जानकारी सुरक्षित रखें)
+                            </label>
+                        </div>
+
+                        <!-- 6. Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-xs d-flex align-items-center justify-content-center gap-2" id="btnConfirmOrderSubmit">
+                            <i class="fa-solid fa-check-circle fa-lg"></i> <span data-i18n="confirmOrderBtn">Confirm & Place Order</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Translations Dictionary -->
+    <script src="js/translations.js?v=2.1"></script>
+
+    <!-- Custom Storefront JS Logic -->
+    <script src="js/store.js?v=2.1"></script>
+
+</body>
+</html>

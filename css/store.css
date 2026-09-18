@@ -1,0 +1,810 @@
+/* ==========================================================
+   Shree Sai Mobile & Electronics - Customer Storefront CSS
+   Modern E-Commerce Mobile & Desktop App UI (Inspired by Flipkart/Amazon)
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #2874f0;
+    --primary-dark: #1255be;
+    --secondary: #fb641b;
+    --success: #388e3c;
+    --dark: #212121;
+    --muted: #878787;
+    --bg-light: #f1f3f6;
+    --card-bg: #ffffff;
+    --border: #e0e0e0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--dark);
+    padding-bottom: 75px; /* Space for mobile bottom nav */
+}
+
+/* 1. Header & Location Bar */
+.store-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #eee;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.location-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #444;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.location-chip i {
+    color: var(--primary);
+}
+
+.store-header {
+    background: #ffffff;
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-input-pill {
+    width: 100%;
+    padding: 11px 16px 11px 44px;
+    border-radius: 9999px;
+    border: 1.5px solid #2874f0;
+    background: #f8faff;
+    font-size: 0.92rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.search-input-pill:focus {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(40, 116, 240, 0.15);
+}
+
+.search-icon-inside {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1.05rem;
+    cursor: pointer;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e2e8f0;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    z-index: 5;
+}
+
+.search-clear-btn:hover {
+    background: #cbd5e1;
+    color: #0f172a;
+}
+
+#productsGridSection {
+    scroll-margin-top: 75px;
+}
+
+/* 2. Category Scroll Pills */
+.category-scroll-bar {
+    background: #ffffff;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: flex;
+    gap: 12px;
+    padding: 10px 16px;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-scroll-bar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+
+.cat-tab {
+    background: transparent;
+    border: none;
+    color: #555;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cat-tab:hover {
+    color: var(--primary);
+    background: #f0f5ff;
+}
+
+.cat-tab.active {
+    color: #ffffff;
+    background: var(--primary);
+    box-shadow: 0 2px 8px rgba(40, 116, 240, 0.3);
+}
+
+/* 3. Hero Promo Banner Carousel */
+.promo-hero-card {
+    background: linear-gradient(135deg, #dcfce7 0%, #e0f2fe 50%, #eff6ff 100%);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    margin: 16px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.hero-rating-badge {
+    background: #15803d;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.hero-price-tag {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.emi-pill {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.hero-img-box {
+    text-align: center;
+    position: relative;
+}
+
+.hero-img-box img {
+    max-height: 190px;
+    width: 100%;
+    object-fit: cover;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
+    transition: transform 0.35s ease;
+}
+
+.hero-img-box img:hover {
+    transform: scale(1.04);
+}
+
+.carousel-item {
+    transition: transform 0.55s ease-in-out !important;
+}
+
+.carousel-indicators-custom {
+    position: absolute;
+    bottom: 8px;
+    margin: 0;
+    gap: 6px;
+    z-index: 5;
+}
+
+.carousel-indicators-custom button {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background-color: rgba(15, 23, 42, 0.3) !important;
+    transition: all 0.3s ease !important;
+    opacity: 0.7 !important;
+}
+
+.carousel-indicators-custom button.active {
+    width: 24px !important;
+    border-radius: 6px !important;
+    background-color: #0f172a !important;
+    opacity: 1 !important;
+}
+
+.carousel-ctrl-btn {
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.08);
+    color: #1e293b;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.85;
+    transition: all 0.2s ease;
+}
+
+.carousel-ctrl-btn:hover {
+    background: #ffffff;
+    opacity: 1;
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 4. Brand Circles Grid */
+.brand-grid-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.brand-circle-item {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-decoration: none;
+    color: var(--dark);
+    display: block;
+}
+
+.brand-circle-item:hover {
+    transform: translateY(-3px);
+}
+
+.brand-icon-wrapper {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 6px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 6px;
+}
+
+.brand-icon-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.brand-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* 5. Product Cards Grid */
+.product-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    padding: 14px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.product-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+    border-color: #cbd5e1;
+}
+
+.product-img-box {
+    height: 160px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.product-img-box img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.25s;
+}
+
+.product-card:hover .product-img-box img {
+    transform: scale(1.06);
+}
+
+.discount-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--secondary);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+    z-index: 2;
+}
+
+.rating-pill {
+    background: #388e3c;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.product-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.7em;
+}
+
+.product-specs-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: auto;
+    margin-bottom: 10px;
+}
+
+.current-price {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.original-price {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.btn-add-cart {
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    width: 100%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-add-cart:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn-buy-now {
+    background: var(--secondary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.btn-buy-now:hover {
+    background: #e65100;
+}
+
+/* 6. Sticky Mobile Bottom Navigation */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1030;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    position: relative;
+    flex-grow: 1;
+    padding: 6px 0;
+    transition: color 0.2s;
+}
+
+.bottom-nav-item i {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.cart-counter-badge {
+    position: absolute;
+    top: 2px;
+    right: 32%;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 9999px;
+}
+
+/* 7. Cart Offcanvas Drawer */
+.cart-item-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.cart-item-img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.qty-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* 8. WhatsApp Quick Floating Order Button */
+.whatsapp-float-btn {
+    position: fixed;
+    bottom: 74px;
+    right: 18px;
+    background: #25d366;
+    color: #ffffff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.45);
+    z-index: 1010;
+    transition: all 0.25s;
+    text-decoration: none;
+}
+
+.whatsapp-float-btn:hover {
+    transform: scale(1.1);
+    color: #ffffff;
+}
+
+@media (min-width: 992px) {
+    body {
+        padding-bottom: 0;
+    }
+    .mobile-bottom-nav {
+        display: none;
+    }
+    .whatsapp-float-btn {
+        bottom: 24px;
+        right: 24px;
+    }
+}
+
+/* SMS Push Notification Banner Toast */
+.sms-push-banner {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    max-width: 440px;
+    width: 92%;
+    background: #ffffff;
+    border: 1.5px solid #3b82f6;
+    padding: 14px 18px;
+    animation: slideDownPush 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(37, 99, 235, 0.2);
+}
+
+.sms-icon-bubble {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+@keyframes slideDownPush {
+    from {
+        transform: translate(-50%, -60px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+.letter-spacing-2 {
+    letter-spacing: 0.25em;
+}
+
+/* Category Quick Cards & Explorer Modal Styles */
+.category-quick-card {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+}
+.category-quick-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    border-color: #3b82f6 !important;
+}
+.category-quick-card.active-category-card {
+    border-color: #2563eb !important;
+    background-color: #eff6ff !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+.category-icon-bubble {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.category-explorer-card {
+    cursor: pointer;
+    transition: all 0.22s ease-in-out;
+    border: 1px solid #e2e8f0;
+}
+.category-explorer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+    border-color: #3b82f6 !important;
+}
+.category-explorer-card:hover img {
+    transform: scale(1.08);
+}
+.category-all-strip {
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+.category-all-strip:hover {
+    background: #eff6ff;
+    border-color: #3b82f6 !important;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.transition-transform {
+    transition: transform 0.3s ease;
+}
+.cat-tab.btn-all-cats {
+    border-radius: 20px;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    white-space: nowrap;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* ==========================================================
+   Meesho-Style Left Side Categories Offcanvas Styles
+   ========================================================== */
+.meesho-categories-offcanvas {
+    width: 90vw !important;
+    max-width: 440px !important;
+    border-right: 1px solid #e2e8f0;
+}
+
+.meesho-rail {
+    background-color: #f8fafc;
+    user-select: none;
+}
+
+.meesho-rail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 6px;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    border-bottom: 1px solid #eef2f6;
+    text-align: center;
+    transition: all 0.2s ease;
+    background-color: #f8fafc;
+}
+
+.meesho-rail-item:hover {
+    background-color: #f1f5f9;
+}
+
+.meesho-rail-item.active {
+    background-color: #ffffff !important;
+    border-left: 4px solid #2563eb !important;
+}
+
+.meesho-rail-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    font-size: 1.15rem;
+    transition: transform 0.2s;
+}
+
+.meesho-rail-item.active .meesho-rail-icon {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.meesho-rail-title {
+    font-size: 0.76rem;
+    color: #475569;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+.meesho-rail-item.active .meesho-rail-title {
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.meesho-rail-count {
+    font-size: 0.65rem;
+    color: #94a3b8;
+}
+
+.meesho-detail-panel {
+    background: #ffffff;
+    height: 100%;
+}
+
+.meesho-brand-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fafafa;
+}
+
+.meesho-brand-chip:hover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    transform: translateY(-2px);
+}
+
+.meesho-brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.meesho-product-item-row {
+    padding: 10px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #ffffff;
+}
+
+.meesho-product-item-row:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+    transform: translateX(3px);
+}
+

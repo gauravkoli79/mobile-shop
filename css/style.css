@@ -1,0 +1,1054 @@
+/* ==========================================================
+   श्री साई मोबाइल शॉप (Shree Sai Mobile Shop)
+   कस्टम मॉडर्न एवं रेस्पॉन्सिव स्टाइलशीट
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #475569;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --dark-bg: #0f172a;
+    --sidebar-bg: #1e293b;
+    --body-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --sidebar-width: 260px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--body-bg);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+}
+
+canvas {
+    max-width: 100% !important;
+}
+
+/* ==========================================================
+   लेआउट: साइडबार एवं मेन एरिया
+   ========================================================== */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    max-width: 100vw;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* साइडबार स्टाइलिंग */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: #fff;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-brand {
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.brand-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 1.25rem 0.85rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.menu-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    padding: 0.75rem 0.85rem 0.35rem;
+}
+
+.nav-item {
+    margin-bottom: 0.35rem;
+}
+
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1rem;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.nav-link-custom:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link-custom.active {
+    color: #fff;
+    background: var(--primary-color);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.nav-link-custom i {
+    font-size: 1.15rem;
+    width: 22px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.88rem;
+}
+
+/* ==========================================================
+   मुख्य सामग्री क्षेत्र (Main Content Area)
+   ========================================================== */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    overflow-x: hidden;
+}
+
+/* टॉपबार / हेडर */
+.topbar {
+    background: #fff;
+    height: 70px;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.topbar-search {
+    position: relative;
+    width: 320px;
+}
+
+.topbar-search input {
+    width: 100%;
+    padding: 0.55rem 1rem 0.55rem 2.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
+    background: var(--body-bg);
+    font-size: 0.88rem;
+    transition: all 0.2s;
+}
+
+.topbar-search input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.topbar-search i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.action-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.action-icon-btn:hover {
+    background: var(--body-bg);
+    color: var(--text-primary);
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger-color);
+}
+
+/* पेज कंटेनर */
+.content-body {
+    padding: 2rem;
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+/* ==========================================================
+   डैशबोर्ड कार्ड्स (KPI Metric Cards)
+   ========================================================== */
+.metric-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.metric-info h6 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+}
+
+.metric-info .value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.metric-info .sub-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
+.metric-icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+}
+
+.icon-blue { background: #eff6ff; color: #2563eb; }
+.icon-green { background: #ecfdf5; color: #10b981; }
+.icon-purple { background: #f5f3ff; color: #8b5cf6; }
+.icon-amber { background: #fffbeb; color: #f59e0b; }
+
+/* कस्टम कार्ड कंटेनर्स */
+.custom-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    margin-bottom: 1.5rem;
+}
+
+.card-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.card-header-flex h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ==========================================================
+   इन्वेंटरी टेबल और बैज स्टाइलिंग
+   ========================================================== */
+.table-custom {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-custom th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--border-color);
+    first-child: border-top-left-radius: 8px;
+    last-child: border-top-right-radius: 8px;
+}
+
+.table-custom td {
+    padding: 1rem 1.1rem;
+    font-size: 0.9rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.table-custom tbody tr {
+    transition: background 0.15s;
+}
+
+.table-custom tbody tr:hover {
+    background: #f8fafc;
+}
+
+.imei-badge {
+    font-family: monospace;
+    background: #f1f5f9;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.imei-copy-btn {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.78rem;
+}
+
+.imei-copy-btn:hover {
+    color: var(--primary-color);
+}
+
+.badge-status {
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-in-stock { background: #dcfce7; color: #15803d; }
+.badge-low-stock { background: #fef3c7; color: #b45309; }
+.badge-sold { background: #f1f5f9; color: #64748b; }
+
+/* बटन स्टाइलिंग */
+.btn-primary-custom {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-primary-custom:hover {
+    background: var(--primary-hover);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+/* ==========================================================
+   रेस्पॉन्सिव मोबाइल स्टाइलिंग
+   ========================================================== */
+.sidebar-toggle-btn {
+    display: none;
+    font-size: 1.3rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Sidebar Overlay Backdrop for Mobile */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
+}
+
+.sidebar-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Tablet & Mobile Breakpoint (<= 991px) */
+@media (max-width: 991px) {
+    :root {
+        --sidebar-width: 280px;
+    }
+
+    .sidebar {
+        width: var(--sidebar-width);
+        max-width: 85vw;
+        transform: translateX(-100%);
+        z-index: 1050;
+        visibility: hidden;
+        pointer-events: none;
+        box-shadow: none;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
+        box-shadow: 0 0 35px rgba(0, 0, 0, 0.45);
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .sidebar-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+    }
+
+    .sidebar-toggle-btn:hover {
+        background: #e2e8f0;
+    }
+
+    .sidebar-toggle-btn:active {
+        transform: scale(0.95);
+    }
+
+    .topbar-search {
+        width: 200px;
+    }
+
+    .content-body {
+        padding: 1rem 0.75rem;
+    }
+}
+
+/* Mobile Phone Breakpoint (<= 768px) */
+@media (max-width: 768px) {
+    /* Topbar Header */
+    .topbar {
+        height: 56px;
+        padding: 0 0.5rem;
+    }
+
+    .header-actions {
+        gap: 0.35rem;
+    }
+
+    .topbar .btn-group .btn {
+        padding: 0.25rem 0.55rem;
+        font-size: 0.72rem;
+    }
+
+    .action-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+    }
+
+    .btn-primary-custom {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+
+    /* Page Padding */
+    .content-body {
+        padding: 0.75rem 0.5rem;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* Metric KPI Cards on Mobile (2x2 Grid) */
+    .metric-card {
+        padding: 0.65rem 0.55rem;
+        border-radius: 12px;
+        min-height: 76px;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .metric-info {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .metric-info h6 {
+        font-size: 0.65rem;
+        margin-bottom: 2px;
+        letter-spacing: 0.01em;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.15;
+    }
+
+    .metric-info .value {
+        font-size: 1.15rem;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .metric-info .sub-text {
+        font-size: 0.6rem;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .metric-icon-box {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        font-size: 0.82rem;
+        border-radius: 8px;
+        margin-left: 2px;
+    }
+
+    /* General Cards */
+    .custom-card {
+        padding: 0.9rem 0.85rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .card-header-flex {
+        margin-bottom: 0.75rem;
+    }
+
+    .card-header-flex h5 {
+        font-size: 0.95rem;
+    }
+
+    h4.fw-bold {
+        font-size: 1.15rem;
+    }
+
+    /* Tables Horizontal Scroll & Spacing on Mobile */
+    .table-responsive {
+        border-radius: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-custom {
+        min-width: 600px;
+    }
+
+    .table-custom th {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .table-custom td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.82rem;
+    }
+
+    /* Order Status Filter Scroll Bar */
+    .order-filter-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .order-filter-scroll-wrapper::-webkit-scrollbar {
+        display: none;
+    }
+
+    .order-filter-btn {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.65rem;
+        white-space: nowrap;
+    }
+}
+
+/* Extra Small Phones (<= 480px) */
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 0.5rem;
+    }
+
+    .metric-info .value {
+        font-size: 1.15rem;
+    }
+
+    .metric-card {
+        padding: 0.65rem 0.75rem;
+    }
+}
+
+/* Mobile Order Cards (For Online Store Orders on Mobile) */
+.mobile-order-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mobile-order-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.mobile-order-header {
+    background: #f8fafc;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mobile-order-body {
+    padding: 12px 14px;
+}
+
+
+/* Live Notification Badge Pulse Animation */
+@keyframes notifPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.pulse-badge {
+    animation: notifPulse 2s infinite;
+}
+
+/* ==========================================================
+   Modern E-Commerce Storefront Footer Styles
+   ========================================================== */
+.store-footer {
+    background: #0b1120 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 10;
+    color: #e2e8f0;
+}
+
+.footer-trust-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.footer-trust-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(37, 99, 235, 0.4);
+    transform: translateY(-3px);
+}
+
+.trust-icon-box {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+}
+
+.owner-highlight-card {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+}
+
+.owner-highlight-card:hover {
+    border-color: rgba(59, 130, 246, 0.55) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    transform: translateY(-2px);
+}
+
+.owner-avatar-circle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 0 14px rgba(37, 99, 235, 0.4);
+}
+
+.footer-link-item {
+    color: #94a3b8 !important;
+    text-decoration: none;
+    transition: color 0.15s ease, padding-left 0.15s ease;
+    display: inline-block;
+}
+
+.footer-link-item:hover {
+    color: #ffffff !important;
+    padding-left: 4px;
+}
+
+/* Ensure mobile sticky bottom nav bar does not overlap footer on mobile */
+@media (max-width: 768px) {
+    .store-footer {
+        padding-bottom: 95px !important;
+    }
+}
+
+/* ==========================================================
+   UPI, PhonePe, Google Pay & QR Scanner Modern Styling
+   ========================================================== */
+.btn-pay-online-upi {
+    background: linear-gradient(135deg, #5f259f 0%, #2563eb 50%, #059669 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 4px 15px rgba(95, 37, 159, 0.35);
+    transition: all 0.25s ease;
+}
+
+.btn-pay-online-upi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(95, 37, 159, 0.5);
+    color: #ffffff !important;
+}
+
+.upi-scanner-frame {
+    position: relative;
+    display: inline-block;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border: 2px solid #e2e8f0;
+}
+
+.scanner-viewfinder {
+    position: relative;
+    display: inline-block;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Scanner 4-Corner Viewfinder Reticle */
+.scanner-corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: #5f259f;
+    border-style: solid;
+    z-index: 3;
+    pointer-events: none;
+}
+.scanner-corner.top-left {
+    top: 6px;
+    left: 6px;
+    border-width: 4px 0 0 4px;
+    border-top-left-radius: 8px;
+}
+.scanner-corner.top-right {
+    top: 6px;
+    right: 6px;
+    border-width: 4px 4px 0 0;
+    border-top-right-radius: 8px;
+}
+.scanner-corner.bottom-left {
+    bottom: 6px;
+    left: 6px;
+    border-width: 0 0 4px 4px;
+    border-bottom-left-radius: 8px;
+}
+.scanner-corner.bottom-right {
+    bottom: 6px;
+    right: 6px;
+    border-width: 0 4px 4px 0;
+    border-bottom-right-radius: 8px;
+}
+
+/* Animated Glowing Scan Line */
+.scanner-scan-line {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    height: 2.5px;
+    background: linear-gradient(90deg, transparent, #22c55e, #3b82f6, #a855f7, transparent);
+    box-shadow: 0 0 12px 2px rgba(34, 197, 94, 0.75);
+    z-index: 2;
+    animation: scanLaser 2.4s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes scanLaser {
+    0% { top: 12px; opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { top: calc(100% - 15px); opacity: 0.8; }
+}
+
+.upi-qr-image {
+    width: 175px;
+    height: 175px;
+    display: block;
+    border-radius: 8px;
+}
+
+/* UPI Apps Quick Pay Buttons */
+.btn-upi-app {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.btn-upi-app:hover {
+    transform: translateY(-2px);
+}
+
+.btn-upi-phonepe {
+    background: #5f259f;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(95, 37, 159, 0.25);
+}
+
+.btn-upi-gpay {
+    background: #1a73e8;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(26, 115, 232, 0.25);
+}
+
+.btn-upi-paytm {
+    background: #002970;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(0, 41, 112, 0.25);
+}
+
+.btn-upi-other {
+    background: #0d9488;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.25);
+}
+
+.upi-copy-pill {
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    border-radius: 10px;
+    padding: 8px 14px;
+}
+
+/* UPI Modal Landscape Styling & Responsive Screen Height Fit */
+#upiPaymentModal .modal-dialog {
+    max-width: 860px;
+    margin: 1.25rem auto;
+}
+
+#upiPaymentModal .modal-content {
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#upiPaymentModal .modal-body {
+    overflow-y: auto;
+    max-height: calc(94vh - 65px);
+}
+
+#upiPaymentModal .modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#upiPaymentModal .modal-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+@media (min-width: 768px) {
+    .border-end-md {
+        border-right: 1px solid #e2e8f0 !important;
+    }
+}
+
+/* ==========================================================
+   Print Styles for GST Tax Invoice & POS Thermal Receipt
+   ========================================================== */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    
+    #posInvoiceModal,
+    #posInvoiceModal * {
+        visibility: visible !important;
+    }
+
+    #posInvoiceModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    #posInvoiceModal .modal-dialog {
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+
+    #posInvoiceModal .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    #posInvoiceModal .modal-footer,
+    #posInvoiceModal .btn-close,
+    #posInvoiceModal .no-print {
+        display: none !important;
+    }
+
+    #posInvoicePrintArea {
+        width: 100% !important;
+        padding: 10px !important;
+        background: #fff !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+
+
